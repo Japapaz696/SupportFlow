@@ -19,7 +19,7 @@ export function CreateTicketForm({ token, onCancel, onCreated }: Props) {
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
+  function loadCategories() {
     let isCurrent = true;
     setIsLoadingCategories(true);
     setMessage('');
@@ -43,6 +43,10 @@ export function CreateTicketForm({ token, onCancel, onCreated }: Props) {
     return () => {
       isCurrent = false;
     };
+  }
+
+  useEffect(() => {
+    return loadCategories();
   }, [token]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -66,9 +70,10 @@ export function CreateTicketForm({ token, onCancel, onCreated }: Props) {
   }
 
   return (
-    <section className="home-page" aria-labelledby="create-ticket-title">
+    <section className="ticket-section" aria-labelledby="create-ticket-title">
       <p className="eyebrow">Novo chamado</p>
       <h1 id="create-ticket-title">Abrir chamado</h1>
+      <p className="supporting-text">Descreva o problema. A prioridade pode seguir o padrão da categoria.</p>
       <form className="login-form" onSubmit={handleSubmit}>
         <label htmlFor="ticket-title">Título</label>
         <input
@@ -99,9 +104,9 @@ export function CreateTicketForm({ token, onCancel, onCreated }: Props) {
           required
           disabled={isLoadingCategories || isSubmitting || categories.length === 0}
         >
-          {isLoadingCategories ? <option>Carregando categorias…</option> : null}
+          {isLoadingCategories ? <option value="">Carregando categorias…</option> : null}
           {!isLoadingCategories && categories.length === 0 ? (
-            <option>Nenhuma categoria disponível</option>
+            <option value="">Nenhuma categoria disponível</option>
           ) : null}
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
@@ -115,6 +120,7 @@ export function CreateTicketForm({ token, onCancel, onCreated }: Props) {
           id="ticket-priority"
           value={priority}
           onChange={(event) => setPriority(event.target.value as TicketPriority | '')}
+          disabled={isSubmitting}
         >
           <option value="">Padrão da categoria</option>
           <option value="critical">Crítica</option>
@@ -124,12 +130,22 @@ export function CreateTicketForm({ token, onCancel, onCreated }: Props) {
         </select>
 
         {message ? (
-          <p className="form-error" role="alert">
-            {message}
-          </p>
+          <div className="form-error" role="alert">
+            <p>{message}</p>
+            {categories.length === 0 ? (
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => loadCategories()}
+                disabled={isLoadingCategories}
+              >
+                Recarregar categorias
+              </button>
+            ) : null}
+          </div>
         ) : null}
         <div className="form-actions">
-          <button type="button" className="secondary-button" onClick={onCancel}>
+          <button type="button" className="secondary-button" onClick={onCancel} disabled={isSubmitting}>
             Cancelar
           </button>
           <button type="submit" disabled={isSubmitting || categories.length === 0}>

@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { DashboardSummary } from '@supportflow/shared';
+import type { DashboardSummary, TicketPriority } from '@supportflow/shared';
 
 import { useAuth } from '../auth/AuthContext';
 import { ApiError, getDashboardSummary } from '../services/api';
+import {
+  formatTicketPriority,
+  formatTicketStatus,
+  priorityBadgeClass,
+  statusBadgeClass,
+} from '../ui/labels';
 
 type Props = {
   onOpenTicket: (id: string) => void;
@@ -11,7 +17,7 @@ type Props = {
 const labels = {
   open: 'Abertos',
   inProgress: 'Em andamento',
-  waitingRequester: 'Aguardando requester',
+  waitingRequester: 'Aguardando solicitante',
   resolved: 'Resolvidos',
   closed: 'Fechados',
   unassigned: 'Sem responsável',
@@ -50,8 +56,14 @@ export function DashboardPage({ onOpenTicket }: Props) {
     void load();
   }, [load]);
 
-  if (isLoading) return <p role="status">Carregando dashboard…</p>;
-  if (message)
+  if (isLoading) {
+    return (
+      <p className="status-message" role="status">
+        Carregando dashboard…
+      </p>
+    );
+  }
+  if (message) {
     return (
       <section className="dashboard-page" aria-label="Erro do dashboard">
         <p className="form-error" role="alert">
@@ -62,6 +74,7 @@ export function DashboardPage({ onOpenTicket }: Props) {
         </button>
       </section>
     );
+  }
   if (!summary) return null;
 
   const statusCards = Object.entries(labels) as Array<[keyof typeof labels, string]>;
@@ -138,15 +151,17 @@ export function DashboardPage({ onOpenTicket }: Props) {
         <section className="dashboard-panel" aria-labelledby="priority-title">
           <h2 id="priority-title">Por prioridade</h2>
           <div className="bar-list">
-            {Object.entries(summary.byPriority).map(([label, count]) => (
-              <div className="bar-row" key={label}>
-                <span>{label}</span>
-                <div className="bar-track">
-                  <div className="bar-fill" style={{ width: `${(count / priorityMax) * 100}%` }} />
+            {(Object.entries(summary.byPriority) as Array<[TicketPriority, number]>).map(
+              ([label, count]) => (
+                <div className="bar-row" key={label}>
+                  <span>{formatTicketPriority(label)}</span>
+                  <div className="bar-track">
+                    <div className="bar-fill" style={{ width: `${(count / priorityMax) * 100}%` }} />
+                  </div>
+                  <strong>{count}</strong>
                 </div>
-                <strong>{count}</strong>
-              </div>
-            ))}
+              ),
+            )}
           </div>
           <h2>Por categoria</h2>
           {Object.keys(summary.byCategory).length === 0 ? (
@@ -185,8 +200,14 @@ export function DashboardPage({ onOpenTicket }: Props) {
                 >
                   <span className="ticket-code">{ticket.code}</span>
                   <strong>{ticket.title}</strong>
-                  <span>
-                    {ticket.priority} · {ticket.assignee ? ticket.assignee.name : 'Sem responsável'}
+                  <span className="ticket-card-meta">
+                    <span className={statusBadgeClass(ticket.status)}>
+                      {formatTicketStatus(ticket.status)}
+                    </span>
+                    <span className={priorityBadgeClass(ticket.priority)}>
+                      {formatTicketPriority(ticket.priority)}
+                    </span>
+                    <span>{ticket.assignee ? ticket.assignee.name : 'Sem responsável'}</span>
                   </span>
                 </button>
               </li>

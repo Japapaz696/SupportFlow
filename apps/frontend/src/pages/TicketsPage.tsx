@@ -3,6 +3,7 @@ import type { TicketListItem } from '@supportflow/shared';
 
 import { useAuth } from '../auth/AuthContext';
 import { ApiError, listTickets } from '../services/api';
+import { formatTicketPriority, formatTicketStatus, priorityBadgeClass, statusBadgeClass } from '../ui/labels';
 import { CreateTicketForm } from './CreateTicketForm';
 import { TicketDetailPage } from './TicketDetailPage';
 
@@ -14,6 +15,7 @@ export function TicketsPage({ initialSelectedTicketId = null }: Props) {
   const { token, user } = useAuth();
   const [tickets, setTickets] = useState<TicketListItem[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(initialSelectedTicketId);
+  const [createdNotice, setCreatedNotice] = useState(false);
   const [status, setStatus] = useState('');
   const [priority, setPriority] = useState('');
   const [showCreate, setShowCreate] = useState(false);
@@ -49,7 +51,11 @@ export function TicketsPage({ initialSelectedTicketId = null }: Props) {
     return (
       <TicketDetailPage
         id={selectedTicketId}
-        onBack={() => setSelectedTicketId(null)}
+        createdNotice={createdNotice}
+        onBack={() => {
+          setCreatedNotice(false);
+          setSelectedTicketId(null);
+        }}
         onChanged={loadTickets}
       />
     );
@@ -62,6 +68,7 @@ export function TicketsPage({ initialSelectedTicketId = null }: Props) {
         onCancel={() => setShowCreate(false)}
         onCreated={(id) => {
           setShowCreate(false);
+          setCreatedNotice(true);
           setSelectedTicketId(id);
         }}
       />
@@ -74,6 +81,7 @@ export function TicketsPage({ initialSelectedTicketId = null }: Props) {
     user.role === 'manager' ||
     user.role === 'admin';
   const hasNextPage = page * 10 < total;
+  const pageCount = Math.max(1, Math.ceil(total / 10));
 
   return (
     <section className="tickets-page" aria-labelledby="tickets-title">
@@ -81,18 +89,20 @@ export function TicketsPage({ initialSelectedTicketId = null }: Props) {
         <div>
           <p className="eyebrow">Atendimento</p>
           <h1 id="tickets-title">Chamados</h1>
+          <p className="supporting-text">Acompanhe, filtre e abra chamados no seu escopo.</p>
         </div>
         {canCreate ? (
-          <button type="button" onClick={() => setShowCreate(true)}>
+          <button className="primary-button" type="button" onClick={() => setShowCreate(true)}>
             Novo chamado
           </button>
         ) : null}
       </div>
 
       <div className="filters" aria-label="Filtros de chamados">
-        <label>
+        <label htmlFor="ticket-filter-status">
           Status
           <select
+            id="ticket-filter-status"
             value={status}
             onChange={(event) => {
               setPage(1);
@@ -105,11 +115,13 @@ export function TicketsPage({ initialSelectedTicketId = null }: Props) {
             <option value="waiting_requester">Aguardando solicitante</option>
             <option value="resolved">Resolvido</option>
             <option value="closed">Fechado</option>
+            <option value="cancelled">Cancelado</option>
           </select>
         </label>
-        <label>
+        <label htmlFor="ticket-filter-priority">
           Prioridade
           <select
+            id="ticket-filter-priority"
             value={priority}
             onChange={(event) => {
               setPage(1);
@@ -126,12 +138,19 @@ export function TicketsPage({ initialSelectedTicketId = null }: Props) {
       </div>
 
       {message ? (
-        <p className="form-error" role="alert">
-          {message}
+        <div className="form-error" role="alert">
+          <p>{message}</p>
+          <button className="secondary-button" type="button" onClick={() => void loadTickets()}>
+            Tentar novamente
+          </button>
+        </div>
+      ) : null}
+      {isLoading ? (
+        <p className="status-message" role="status">
+          Carregando chamados…
         </p>
       ) : null}
-      {isLoading ? <p role="status">Carregando chamados…</p> : null}
-      {!isLoading && tickets.length === 0 ? (
+      {!isLoading && !message && tickets.length === 0 ? (
         <p className="empty-state">Nenhum chamado encontrado.</p>
       ) : null}
       <ul className="ticket-list">
@@ -144,8 +163,14 @@ export function TicketsPage({ initialSelectedTicketId = null }: Props) {
             >
               <span className="ticket-code">{ticket.code}</span>
               <strong>{ticket.title}</strong>
-              <span>
-                {ticket.category.name} · {ticket.status} · {ticket.priority}
+              <span className="ticket-card-meta">
+                <span>{ticket.category.name}</span>
+                <span className={statusBadgeClass(ticket.status)}>
+                  {formatTicketStatus(ticket.status)}
+                </span>
+                <span className={priorityBadgeClass(ticket.priority)}>
+                  {formatTicketPriority(ticket.priority)}
+                </span>
               </span>
             </button>
           </li>
@@ -154,14 +179,18 @@ export function TicketsPage({ initialSelectedTicketId = null }: Props) {
       <div className="pagination">
         <button
           type="button"
+          className="secondary-button"
           disabled={page === 1 || isLoading}
           onClick={() => setPage((current) => current - 1)}
         >
           Anterior
         </button>
-        <span>Página {page}</span>
+        <span>
+          Página {page} de {pageCount}
+        </span>
         <button
           type="button"
+          className="secondary-button"
           disabled={!hasNextPage || isLoading}
           onClick={() => setPage((current) => current + 1)}
         >

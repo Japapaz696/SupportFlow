@@ -34,7 +34,7 @@ export function LoginPage() {
       <h1 id="login-title">Acesse sua conta</h1>
       <p className="supporting-text">Entre com o e-mail e a senha cadastrados.</p>
 
-      <form onSubmit={handleSubmit} className="login-form">
+      <form onSubmit={handleSubmit} className="login-form" aria-busy={isSubmitting}>
         <label htmlFor="email">E-mail</label>
         <input
           id="email"
@@ -44,6 +44,7 @@ export function LoginPage() {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           required
+          disabled={isSubmitting}
         />
 
         <label htmlFor="password">Senha</label>
@@ -56,6 +57,7 @@ export function LoginPage() {
           onChange={(event) => setPassword(event.target.value)}
           required
           minLength={12}
+          disabled={isSubmitting}
         />
 
         {error ? (
