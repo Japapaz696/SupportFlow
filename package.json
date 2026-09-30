@@ -1,0 +1,38 @@
+{
+  "name": "supportflow",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run build --workspace=@supportflow/shared && concurrently -n backend,frontend -c cyan,magenta \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run dev --workspace=@supportflow/backend",
+    "dev:frontend": "npm run dev --workspace=@supportflow/frontend",
+    "start:backend": "npm run start --workspace=@supportflow/backend",
+    "build": "npm run build --workspace=@supportflow/shared && npm run build --workspace=@supportflow/backend && npm run build --workspace=@supportflow/frontend",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "npm run build --workspace=@supportflow/shared && npm run typecheck --workspace=@supportflow/backend && npm run typecheck --workspace=@supportflow/frontend",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run db:migrate --workspace=@supportflow/backend",
+    "bootstrap:admin": "npm run bootstrap:admin --workspace=@supportflow/backend",
+    "test": "npm run test --workspace=@supportflow/backend",
+    "validate": "npm run format:check && npm run lint && npm run typecheck && npm run build && npm run test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.35.0",
+    "globals": "^16.3.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.43.0"
+  }
+}

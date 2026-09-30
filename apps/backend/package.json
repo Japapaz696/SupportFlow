@@ -1,0 +1,33 @@
+{
+  "name": "@supportflow/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run src --maxWorkers=1 --no-file-parallelism",
+    "db:migrate": "tsx src/database/migrate.ts",
+    "bootstrap:admin": "tsx src/database/bootstrap-admin.ts"
+  },
+  "dependencies": {
+    "@supportflow/shared": "*",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.5.2",
+    "@types/pg": "^8.15.5",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.0",
+    "tsx": "^4.20.5",
+    "vitest": "^5.0.2"
+  }
+}

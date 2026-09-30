@@ -1,0 +1,450 @@
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #172033;
+  background: #f4f6fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  min-height: 2.75rem;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.app-shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 2rem;
+}
+
+.home-page,
+.auth-card {
+  width: min(100%, 38rem);
+  padding: 3rem;
+  background: white;
+  border: 1px solid #dce2ee;
+  border-radius: 1rem;
+  box-shadow: 0 1rem 3rem rgb(23 32 51 / 8%);
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  color: #5267d9;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 3rem);
+}
+
+.supporting-text {
+  color: #536078;
+  line-height: 1.6;
+}
+
+.login-form {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.login-form label {
+  font-weight: 700;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  color: #172033;
+  background: #fff;
+  border: 1px solid #b9c3d6;
+  border-radius: 0.5rem;
+}
+
+.login-form input:focus-visible {
+  border-color: #5267d9;
+  outline: 3px solid rgb(82 103 217 / 20%);
+}
+
+.login-form button,
+.secondary-button {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+}
+
+.login-form button {
+  margin-top: 0.75rem;
+  color: white;
+  background: #465bd0;
+  border: 1px solid #465bd0;
+}
+
+.secondary-button {
+  color: #344054;
+  background: white;
+  border: 1px solid #b9c3d6;
+}
+
+.form-error {
+  margin: 0.25rem 0 0;
+  color: #b42318;
+}
+
+.page-header {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.user-details {
+  display: grid;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.user-details div {
+  padding: 1rem;
+  background: #f8f9fc;
+  border-radius: 0.5rem;
+}
+
+.user-details dt {
+  color: #667085;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.user-details dd {
+  margin: 0.35rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.role-notice {
+  padding: 1rem;
+  color: #344054;
+  background: #eef1ff;
+  border-radius: 0.5rem;
+}
+
+.wide {
+  width: min(100%, 72rem);
+}
+
+.filters,
+.action-panel,
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  margin: 1.5rem 0;
+}
+
+.filters label,
+.action-panel label,
+.login-form label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+select,
+textarea {
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  color: #172033;
+  background: #fff;
+  border: 1px solid #b9c3d6;
+  border-radius: 0.5rem;
+}
+
+.ticket-list,
+.comment-list {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.ticket-card {
+  display: grid;
+  width: 100%;
+  gap: 0.35rem;
+  padding: 1rem;
+  color: #172033;
+  text-align: left;
+  background: #f8f9fc;
+  border: 1px solid #dce2ee;
+  border-radius: 0.75rem;
+}
+
+.ticket-code {
+  color: #5267d9;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pagination {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.ticket-detail {
+  display: grid;
+  gap: 1rem;
+}
+
+.diagnostic-panel {
+  padding: 1rem;
+  background: #f8f9fc;
+  border: 1px solid #dce2ee;
+  border-radius: 0.75rem;
+}
+
+.diagnostic-panel h2 {
+  margin-top: 0;
+}
+
+.form-group {
+  display: grid;
+  gap: 0.35rem;
+}
+
+select:focus-visible,
+textarea:focus-visible,
+input:focus-visible {
+  border-color: #5267d9;
+  outline: 3px solid rgb(82 103 217 / 20%);
+}
+
+.comment-list li {
+  padding: 1rem;
+  background: #f8f9fc;
+  border-radius: 0.75rem;
+}
+
+.empty-state {
+  padding: 1rem;
+  color: #536078;
+  background: #f8f9fc;
+  border-radius: 0.75rem;
+}
+
+.app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  border-bottom: 1px solid #dce2ee;
+}
+
+.app-nav button,
+.policy-form button,
+.dashboard-page button:not(.ticket-card) {
+  padding: 0.65rem 0.9rem;
+  color: #344054;
+  background: white;
+  border: 1px solid #b9c3d6;
+  border-radius: 0.5rem;
+  font-weight: 700;
+}
+
+.app-nav .nav-active {
+  color: white;
+  background: #465bd0;
+  border-color: #465bd0;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.metric-card,
+.dashboard-panel {
+  min-width: 0;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #dce2ee;
+  border-radius: 0.75rem;
+}
+
+.metric-card {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.metric-card span,
+.metric-list dt {
+  color: #667085;
+  font-size: 0.85rem;
+}
+
+.metric-card strong {
+  font-size: 1.8rem;
+}
+
+.dashboard-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.dashboard-panel {
+  margin-bottom: 1rem;
+}
+
+.metric-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.metric-list div,
+.policy-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  justify-content: space-between;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #edf0f6;
+}
+
+.metric-list dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.small-text {
+  font-size: 0.85rem;
+}
+
+.bar-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 5rem 1fr 2rem;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bar-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.bar-track {
+  height: 0.7rem;
+  overflow: hidden;
+  background: #edf0f6;
+  border-radius: 999px;
+}
+
+.bar-fill {
+  height: 100%;
+  background: #5267d9;
+  border-radius: inherit;
+}
+
+.policy-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  margin: 1.5rem 0;
+}
+
+.policy-form label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.policy-form input,
+.policy-form select {
+  min-width: 9rem;
+  padding: 0.65rem;
+  border: 1px solid #b9c3d6;
+  border-radius: 0.5rem;
+}
+
+.policy-list {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.policy-list li {
+  align-items: center;
+  padding: 1rem;
+  background: #f8f9fc;
+  border: 1px solid #dce2ee;
+  border-radius: 0.75rem;
+}
+
+@media (max-width: 36rem) {
+  .dashboard-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .bar-row {
+    grid-template-columns: 4rem 1fr 2rem;
+  }
+
+  .app-shell {
+    padding: 1rem;
+  }
+
+  .home-page,
+  .auth-card {
+    padding: 1.5rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+  }
+
+  .policy-form,
+  .policy-form label,
+  .policy-form button {
+    width: 100%;
+  }
+}
