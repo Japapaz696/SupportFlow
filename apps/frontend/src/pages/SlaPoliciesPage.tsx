@@ -10,6 +10,7 @@ export function SlaPoliciesPage() {
   const { token } = useAuth();
   const [policies, setPolicies] = useState<SlaPolicy[]>([]);
   const [message, setMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [priority, setPriority] = useState<TicketPriority>('critical');
@@ -20,6 +21,7 @@ export function SlaPoliciesPage() {
     if (!token) return;
     setIsLoading(true);
     setMessage('');
+    setSuccessMessage('');
     try {
       setPolicies(await listSlaPolicies(token));
     } catch (error) {
@@ -48,6 +50,7 @@ export function SlaPoliciesPage() {
     if (!token) return;
     setIsSubmitting(true);
     setMessage('');
+    setSuccessMessage('');
     try {
       const existing = policies.find((policy) => policy.priority === priority);
       const durations = {
@@ -60,6 +63,7 @@ export function SlaPoliciesPage() {
         await createSlaPolicy(token, { priority, ...durations });
       }
       await load();
+      setSuccessMessage('Política de SLA salva com sucesso!');
     } catch (error) {
       setMessage(error instanceof ApiError ? error.message : 'Não foi possível criar a política.');
     } finally {
@@ -82,9 +86,13 @@ export function SlaPoliciesPage() {
     if (!token) return;
     setIsSubmitting(true);
     setMessage('');
+    setSuccessMessage('');
     try {
       await updateSlaPolicy(token, policy.id, { isActive: !policy.isActive });
       await load();
+      setSuccessMessage(
+        'Política de SLA ' + (policy.isActive ? 'desativada' : 'ativada') + ' com sucesso!',
+      );
     } catch (error) {
       setMessage(
         error instanceof ApiError ? error.message : 'Não foi possível atualizar a política.',
@@ -106,10 +114,18 @@ export function SlaPoliciesPage() {
         </div>
       </div>
       {message ? (
-        <p className="form-error" role="alert">
-          {message}
-        </p>
+        <div className="form-error" role="alert">
+          <p>{message}</p>
+          <button className="secondary-button" type="button" onClick={() => void load()}>
+            Tentar novamente
+          </button>
+        </div>
       ) : null}
+      {successMessage && (
+        <p className="form-success" role="alert">
+          {successMessage}
+        </p>
+      )}
       <form className="policy-form" onSubmit={submit}>
         <label>
           Prioridade

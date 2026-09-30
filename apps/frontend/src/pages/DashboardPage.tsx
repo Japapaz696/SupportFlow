@@ -156,7 +156,10 @@ export function DashboardPage({ onOpenTicket }: Props) {
                 <div className="bar-row" key={label}>
                   <span>{formatTicketPriority(label)}</span>
                   <div className="bar-track">
-                    <div className="bar-fill" style={{ width: `${(count / priorityMax) * 100}%` }} />
+                    <div
+                      className="bar-fill"
+                      style={{ width: `${(count / priorityMax) * 100}%` }}
+                    />
                   </div>
                   <strong>{count}</strong>
                 </div>

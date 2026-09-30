@@ -19,6 +19,7 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
   const [message, setMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -26,6 +27,7 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
     if (!token) return;
     setIsLoading(true);
     setMessage('');
+    setSuccessMessage('');
     try {
       const [list, count] = await Promise.all([
         listNotifications(token, { page: 1, pageSize: 20 }),
@@ -57,8 +59,10 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
   async function markNotificationRead(notification: Notification) {
     setIsSubmitting(true);
     setMessage('');
+    setSuccessMessage('');
     try {
       await markRead(notification);
+      setSuccessMessage('Notificação marcada como lida.');
     } catch (error) {
       setMessage(
         error instanceof ApiError ? error.message : 'Não foi possível atualizar a notificação.',
@@ -71,6 +75,7 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
   async function openNotification(notification: Notification) {
     setIsSubmitting(true);
     setMessage('');
+    setSuccessMessage('');
     try {
       const updated = await markRead(notification);
       if (updated.ticketId) {
@@ -89,6 +94,7 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
     if (!token) return;
     setIsSubmitting(true);
     setMessage('');
+    setSuccessMessage('');
     try {
       await readAllNotifications(token);
       setNotifications((current) =>
@@ -98,6 +104,7 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
         })),
       );
       setUnread(0);
+      setSuccessMessage('Todas as notificações foram marcadas como lidas.');
     } catch (error) {
       setMessage(
         error instanceof ApiError ? error.message : 'Não foi possível marcar as notificações.',
@@ -133,10 +140,18 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
       </div>
 
       {message ? (
-        <p className="form-error" role="alert">
-          {message}
-        </p>
+        <div className="form-error" role="alert">
+          <p>{message}</p>
+          <button className="secondary-button" type="button" onClick={() => void load()}>
+            Tentar novamente
+          </button>
+        </div>
       ) : null}
+      {successMessage && (
+        <p className="form-success" role="alert">
+          {successMessage}
+        </p>
+      )}
       {isLoading ? <p role="status">Carregando notificações…</p> : null}
       {!isLoading && notifications.length === 0 ? (
         <p className="empty-state">Nenhuma notificação por enquanto.</p>

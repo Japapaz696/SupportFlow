@@ -3,6 +3,7 @@ import type { Category, TicketPriority } from '@supportflow/shared';
 
 import { useAuth } from '../auth/AuthContext';
 import { ApiError, createCategory, listCategories, updateCategory } from '../services/api';
+import { formatTicketPriority } from '../ui/labels';
 
 const priorities: TicketPriority[] = ['critical', 'high', 'medium', 'low'];
 
@@ -10,6 +11,7 @@ export function CategoriesAdminPage() {
   const { token, user } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [message, setMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [name, setName] = useState('');
@@ -21,6 +23,7 @@ export function CategoriesAdminPage() {
     if (!token) return;
     setIsLoading(true);
     setMessage('');
+    setSuccessMessage('');
     try {
       setCategories(await listCategories(token, true));
     } catch (error) {
@@ -41,6 +44,7 @@ export function CategoriesAdminPage() {
     if (!token) return;
     setIsSubmitting(true);
     setMessage('');
+    setSuccessMessage('');
     try {
       if (editingId) {
         await updateCategory(token, editingId, {
@@ -60,6 +64,7 @@ export function CategoriesAdminPage() {
       setDefaultPriority('medium');
       setEditingId(null);
       await load();
+      setSuccessMessage('Categoria salva com sucesso!');
     } catch (error) {
       setMessage(
         error instanceof ApiError ? error.message : 'Não foi possível salvar a categoria.',
@@ -80,9 +85,11 @@ export function CategoriesAdminPage() {
     if (!token) return;
     setIsSubmitting(true);
     setMessage('');
+    setSuccessMessage('');
     try {
       await updateCategory(token, category.id, { isActive: !category.isActive });
       await load();
+      setSuccessMessage(`Categoria ${category.isActive ? 'desativada' : 'ativada'} com sucesso!`);
     } catch (error) {
       setMessage(
         error instanceof ApiError ? error.message : 'Não foi possível atualizar a categoria.',
@@ -94,7 +101,7 @@ export function CategoriesAdminPage() {
 
   if (!user || (user.role !== 'manager' && user.role !== 'admin')) {
     return (
-      <section className="home-page" aria-label="Acesso restrito">
+      <section className="home-page wide" aria-label="Acesso restrito">
         <p className="form-error" role="alert">
           Você não tem permissão para administrar categorias.
         </p>
@@ -119,6 +126,43 @@ export function CategoriesAdminPage() {
           {message}
         </p>
       ) : null}
+      {successMessage && (
+        <p className="form-success" role="alert">
+          {successMessage}
+        </p>
+      )}
+      {isLoading ? <p role="status">Carregando categorias…</p> : null}
+      {!isLoading && categories.length === 0 ? (
+        <p className="empty-state">Nenhuma categoria encontrada.</p>
+      ) : null}
+      <ul className="policy-list">
+        {categories.map((category) => (
+          <li key={category.id}>
+            <strong>{category.name}</strong>
+            <span>
+              {category.description ?? 'Sem descrição'} · padrão{' '}
+              {formatTicketPriority(category.defaultPriority)}
+            </span>
+            <span>{category.isActive ? 'Ativa' : 'Inativa'}</span>
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => void toggle(category)}
+            >
+              {category.isActive ? 'Desativar' : 'Ativar'}
+            </button>
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => startEdit(category)}
+            >
+              Editar
+            </button>
+          </li>
+        ))}
+      </ul>
 
       <form className="policy-form" onSubmit={submit}>
         <label>
@@ -148,7 +192,7 @@ export function CategoriesAdminPage() {
           >
             {priorities.map((priority) => (
               <option key={priority} value={priority}>
-                {priority}
+                {formatTicketPriority(priority)}
               </option>
             ))}
           </select>
@@ -157,38 +201,6 @@ export function CategoriesAdminPage() {
           {isSubmitting ? 'Salvando…' : editingId ? 'Atualizar categoria' : 'Criar categoria'}
         </button>
       </form>
-
-      {isLoading ? <p role="status">Carregando categorias…</p> : null}
-      {!isLoading && categories.length === 0 ? (
-        <p className="empty-state">Nenhuma categoria encontrada.</p>
-      ) : null}
-      <ul className="policy-list">
-        {categories.map((category) => (
-          <li key={category.id}>
-            <strong>{category.name}</strong>
-            <span>
-              {category.description ?? 'Sem descrição'} · padrão {category.defaultPriority}
-            </span>
-            <span>{category.isActive ? 'Ativa' : 'Inativa'}</span>
-            <button
-              className="secondary-button"
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => toggle(category)}
-            >
-              {category.isActive ? 'Desativar' : 'Ativar'}
-            </button>
-            <button
-              className="secondary-button"
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => startEdit(category)}
-            >
-              Editar
-            </button>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }

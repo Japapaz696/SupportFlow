@@ -6,7 +6,11 @@ import type {
 } from '@supportflow/shared';
 
 import { useAuth } from '../auth/AuthContext';
-import { ApiError, getTicketTechnicalDiagnostic, saveTicketTechnicalDiagnostic } from '../services/api';
+import {
+  ApiError,
+  getTicketTechnicalDiagnostic,
+  saveTicketTechnicalDiagnostic,
+} from '../services/api';
 
 type Props = {
   ticketId: string;
@@ -60,11 +64,7 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
         });
       }
     } catch (error) {
-      setError(
-        error instanceof ApiError
-          ? error.message
-          : 'Erro ao carregar diagnóstico técnico.'
-      );
+      setError(error instanceof ApiError ? error.message : 'Erro ao carregar diagnóstico técnico.');
     } finally {
       setIsLoading(false);
     }
@@ -101,9 +101,7 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
       setSuccessMessage('Diagnóstico técnico salvo com sucesso!');
     } catch (error) {
       setError(
-        error instanceof ApiError
-          ? error.message
-          : 'Não foi possível salvar o diagnóstico.'
+        error instanceof ApiError ? error.message : 'Não foi possível salvar o diagnóstico.',
       );
     } finally {
       setIsSaving(false);
@@ -172,7 +170,7 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
               <option value="POST">POST</option>
               <option value="PUT">PUT</option>
               <option value="PATCH">PATCH</option>
-              <option value="DELETE">DELETE</option
+              <option value="DELETE">DELETE</option>
               <option value="OPTIONS">OPTIONS</option>
               <option value="HEAD">HEAD</option>
             </select>

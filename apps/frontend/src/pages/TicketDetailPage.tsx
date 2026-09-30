@@ -11,11 +11,17 @@ import {
   addComment,
   ApiError,
   assignTicket,
-  changeTicketStatus,
   changeTicketPriority,
-  changeTicketStatus as apiChangeTicketStatus,
+  changeTicketStatus,
   getTicket,
 } from '../services/api';
+import {
+  formatTicketEvent,
+  formatTicketPriority,
+  formatTicketStatus,
+  priorityBadgeClass,
+  statusBadgeClass,
+} from '../ui/labels';
 import { TicketTechnicalDiagnosticPanel } from './TicketTechnicalDiagnosticPanel';
 
 type Props = {
@@ -142,20 +148,6 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
     }
   }
 
-  async function runAction(action: () => Promise<TicketDetail>) {
-    setIsSubmitting(true);
-    setMessage('');
-    setSuccessMessage('');
-    try {
-      setTicket(await action());
-      onChanged();
-    } catch (error) {
-      setMessage(error instanceof ApiError ? error.message : 'Não foi possível executar a ação.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
   return (
     <section className="ticket-detail" aria-labelledby="ticket-detail-title">
       <button type="button" className="secondary-button" onClick={onBack}>
@@ -179,7 +171,9 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
               <p className="eyebrow">{ticket.code}</p>
               <h1 id="ticket-detail-title">{ticket.title}</h1>
             </div>
-            <span className="ticket-code">{ticket.status}</span>
+            <span className={statusBadgeClass(ticket.status)}>
+              {formatTicketStatus(ticket.status)}
+            </span>
           </div>
           <p className="supporting-text">{ticket.description}</p>
           <dl className="user-details">
@@ -191,7 +185,11 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
             </div>
             <div>
               <dt>Prioridade</dt>
-              <dd>{ticket.priority}</dd>
+              <dd>
+                <span className={priorityBadgeClass(ticket.priority)}>
+                  {formatTicketPriority(ticket.priority)}
+                </span>
+              </dd>
             </div>
             <div>
               <dt>Solicitante</dt>
@@ -227,7 +225,7 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
                 >
                   {availableStatuses.map((status) => (
                     <option key={status} value={status}>
-                      {status}
+                      {formatTicketStatus(status)}
                     </option>
                   ))}
                 </select>
@@ -290,11 +288,17 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
             <ul className="comment-list">
               {ticket.comments.map((comment) => (
                 <li key={comment.id}>
-                  <strong>{comment.author.name}</strong> <span>{comment.visibility}</span>
+                  <strong>{comment.author.name}</strong>
+                  <span className={comment.visibility === 'internal' ? 'badge badge--neutral' : ''}>
+                    {comment.visibility === 'internal' ? 'Interno' : 'Público'}
+                  </span>
                   <p>{comment.body}</p>
                 </li>
               ))}
             </ul>
+            {ticket.comments.length === 0 && (
+              <p className="empty-state">Nenhum comentário ainda.</p>
+            )}
             {isMutable ? (
               <form className="login-form" onSubmit={submitComment}>
                 <label htmlFor="comment-body">Novo comentário</label>
@@ -330,11 +334,17 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
               <ul className="comment-list">
                 {ticket.events.map((event) => (
                   <li key={event.id}>
-                    {event.type} · {event.actor?.name ?? 'Sistema'} ·{' '}
-                    <new Date(event.createdAt).toLocaleString('pt-BR')}
+                    <span className="badge badge--neutral">{formatTicketEvent(event.type)}</span>
+                    <span> · </span>
+                    <span>{event.actor?.name ?? 'Sistema'}</span>
+                    <span> · </span>
+                    <time>{new Date(event.createdAt).toLocaleString('pt-BR')}</time>
                   </li>
                 ))}
               </ul>
+              {ticket.events.length === 0 && (
+                <p className="empty-state">Nenhum evento registrado.</p>
+              )}
             </section>
           ) : null}
         </>

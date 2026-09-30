@@ -73,7 +73,9 @@ export function CreateTicketForm({ token, onCancel, onCreated }: Props) {
     <section className="ticket-section" aria-labelledby="create-ticket-title">
       <p className="eyebrow">Novo chamado</p>
       <h1 id="create-ticket-title">Abrir chamado</h1>
-      <p className="supporting-text">Descreva o problema. A prioridade pode seguir o padrão da categoria.</p>
+      <p className="supporting-text">
+        Descreva o problema. A prioridade pode seguir o padrão da categoria.
+      </p>
       <form className="login-form" onSubmit={handleSubmit}>
         <label htmlFor="ticket-title">Título</label>
         <input
@@ -145,7 +147,12 @@ export function CreateTicketForm({ token, onCancel, onCreated }: Props) {
           </div>
         ) : null}
         <div className="form-actions">
-          <button type="button" className="secondary-button" onClick={onCancel} disabled={isSubmitting}>
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Cancelar
           </button>
           <button type="submit" disabled={isSubmitting || categories.length === 0}>

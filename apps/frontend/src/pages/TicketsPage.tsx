@@ -3,7 +3,12 @@ import type { TicketListItem } from '@supportflow/shared';
 
 import { useAuth } from '../auth/AuthContext';
 import { ApiError, listTickets } from '../services/api';
-import { formatTicketPriority, formatTicketStatus, priorityBadgeClass, statusBadgeClass } from '../ui/labels';
+import {
+  formatTicketPriority,
+  formatTicketStatus,
+  priorityBadgeClass,
+  statusBadgeClass,
+} from '../ui/labels';
 import { CreateTicketForm } from './CreateTicketForm';
 import { TicketDetailPage } from './TicketDetailPage';
 
