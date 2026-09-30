@@ -169,6 +169,7 @@ h2 {
 
 .form-error,
 .success-message,
+.form-success,
 .status-message {
   margin: 0.25rem 0 0;
   padding: 0.75rem 0.9rem;
@@ -182,7 +183,8 @@ h2 {
   border: 1px solid #fecdca;
 }
 
-.success-message {
+.success-message,
+.form-success {
   color: var(--color-success);
   background: var(--color-success-bg);
   border: 1px solid #abefc6;

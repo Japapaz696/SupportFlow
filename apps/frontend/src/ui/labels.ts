@@ -1,25 +1,12 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import type {
   CommentVisibility,
   NotificationType,
   SlaClockStatus,
-  TicketDetail,
   TicketEventType,
   TicketPriority,
   TicketStatus,
   UserRole,
 } from '@supportflow/shared';
-
-import { useAuth } from '../auth/AuthContext';
-import {
-  addComment,
-  ApiError,
-  assignTicket,
-  changeTicketPriority,
-  changeTicketStatus,
-  getTicket,
-} from '../services/api';
-import { TicketTechnicalDiagnosticPanel } from './TicketTechnicalDiagnosticPanel';
 
 const statusLabels: Record<TicketStatus, string> = {
   open: 'Aberto',

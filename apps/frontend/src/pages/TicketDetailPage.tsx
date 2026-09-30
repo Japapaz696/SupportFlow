@@ -16,6 +16,8 @@ import {
   getTicket,
 } from '../services/api';
 import {
+  formatCommentVisibility,
+  formatSlaClockStatus,
   formatTicketEvent,
   formatTicketPriority,
   formatTicketStatus,
@@ -28,16 +30,11 @@ type Props = {
   id: string;
   onBack: () => void;
   onChanged: () => void;
+  createdNotice?: boolean;
 };
 
 function formatSlaClock(label: string, clock: TicketDetail['sla']['firstResponse']) {
   const due = clock.dueAt ? new Date(clock.dueAt).toLocaleString('pt-BR') : 'Não configurado';
-  const state = {
-    pending: 'Pendente',
-    at_risk: 'Em risco',
-    met: 'Cumprido',
-    breached: 'Vencido',
-  }[clock.status];
   const time =
     clock.status === 'met'
       ? ''
@@ -50,7 +47,7 @@ function formatSlaClock(label: string, clock: TicketDetail['sla']['firstResponse
     <div>
       <dt>{label}</dt>
       <dd>
-        Prazo: {due} · Status: {state}
+        Prazo: {due} · Status: {formatSlaClockStatus(clock.status)}
         {time}
       </dd>
     </div>
@@ -66,7 +63,7 @@ const statusTransitions: Record<TicketStatus, TicketStatus[]> = {
   cancelled: [],
 };
 
-export function TicketDetailPage({ id, onBack, onChanged }: Props) {
+export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false }: Props) {
   const { token, user } = useAuth();
   const [ticket, setTicket] = useState<TicketDetail | null>(null);
   const [message, setMessage] = useState('');
@@ -75,14 +72,14 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
   const [assigneeId, setAssigneeId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState(
+    createdNotice ? 'Chamado criado com sucesso!' : '',
+  );
 
   const loadTicket = useCallback(async () => {
     if (!token) return;
     setIsLoading(true);
-    setTicket(null);
     setMessage('');
-    setSuccessMessage('');
     try {
       const result = await getTicket(token, id);
       setTicket(result);
@@ -97,8 +94,10 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
   }, [id, token]);
 
   useEffect(() => {
+    setTicket(null);
+    setSuccessMessage(createdNotice ? 'Chamado criado com sucesso!' : '');
     void loadTicket();
-  }, [loadTicket]);
+  }, [createdNotice, loadTicket]);
 
   if (!token || !user) return null;
   const isTeam = user.role === 'agent' || user.role === 'manager' || user.role === 'admin';
@@ -120,6 +119,7 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
     setSuccessMessage('');
     try {
       setTicket(await action());
+      setSuccessMessage('Chamado atualizado com sucesso!');
       onChanged();
     } catch (error) {
       setMessage(error instanceof ApiError ? error.message : 'Não foi possível executar a ação.');
@@ -154,16 +154,25 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
         Voltar
       </button>
       {message ? (
-        <p className="form-error" role="alert">
-          {message}
+        <div className="form-error" role="alert">
+          <p>{message}</p>
+          {!ticket ? (
+            <button className="secondary-button" type="button" onClick={() => void loadTicket()}>
+              Tentar novamente
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      {isLoading ? (
+        <p className="status-message" role="status">
+          Carregando chamado…
         </p>
       ) : null}
-      {isLoading ? <p role="status">Carregando chamado…</p> : null}
-      {successMessage && (
-        <p className="form-success" role="alert">
+      {successMessage ? (
+        <p className="form-success" role="status">
           {successMessage}
         </p>
-      )}
+      ) : null}
       {ticket ? (
         <>
           <div className="page-header">
@@ -211,9 +220,10 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
 
           {isTeam && isMutable ? (
             <div className="action-panel">
-              <label>
+              <label htmlFor="ticket-status">
                 Status
                 <select
+                  id="ticket-status"
                   value={ticket.status}
                   onChange={(event) =>
                     token &&
@@ -231,9 +241,10 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
                 </select>
               </label>
               {canManagePriority ? (
-                <label>
+                <label htmlFor="ticket-priority">
                   Prioridade
                   <select
+                    id="ticket-priority"
                     value={ticket.priority}
                     onChange={(event) =>
                       token &&
@@ -243,21 +254,23 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
                     }
                     disabled={isSubmitting}
                   >
-                    <option value="critical">Crítica</option>
-                    <option value="high">Alta</option>
-                    <option value="medium">Média</option>
-                    <option value="low">Baixa</option>
+                    <option value="critical">{formatTicketPriority('critical')}</option>
+                    <option value="high">{formatTicketPriority('high')}</option>
+                    <option value="medium">{formatTicketPriority('medium')}</option>
+                    <option value="low">{formatTicketPriority('low')}</option>
                   </select>
                 </label>
               ) : null}
               {canManagePriority ? (
                 <>
-                  <label>
-                    Responsável ID
+                  <label htmlFor="ticket-assignee">
+                    ID do responsável
                     <input
+                      id="ticket-assignee"
                       value={assigneeId}
                       onChange={(event) => setAssigneeId(event.target.value)}
                       placeholder="UUID do agente"
+                      disabled={isSubmitting}
                     />
                   </label>
                   <button
@@ -285,19 +298,22 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
 
           <section aria-labelledby="comments-title">
             <h2 id="comments-title">Comentários</h2>
-            <ul className="comment-list">
-              {ticket.comments.map((comment) => (
-                <li key={comment.id}>
-                  <strong>{comment.author.name}</strong>
-                  <span className={comment.visibility === 'internal' ? 'badge badge--neutral' : ''}>
-                    {comment.visibility === 'internal' ? 'Interno' : 'Público'}
-                  </span>
-                  <p>{comment.body}</p>
-                </li>
-              ))}
-            </ul>
-            {ticket.comments.length === 0 && (
+            {ticket.comments.length === 0 ? (
               <p className="empty-state">Nenhum comentário ainda.</p>
+            ) : (
+              <ul className="comment-list">
+                {ticket.comments.map((comment) => (
+                  <li key={comment.id}>
+                    <strong>{comment.author.name}</strong>
+                    <span
+                      className={comment.visibility === 'internal' ? 'badge badge--neutral' : ''}
+                    >
+                      {formatCommentVisibility(comment.visibility)}
+                    </span>
+                    <p>{comment.body}</p>
+                  </li>
+                ))}
+              </ul>
             )}
             {isMutable ? (
               <form className="login-form" onSubmit={submitComment}>
@@ -308,16 +324,19 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
                   onChange={(event) => setCommentBody(event.target.value)}
                   rows={4}
                   required
+                  disabled={isSubmitting}
                 />
                 {isTeam ? (
-                  <label>
+                  <label htmlFor="comment-visibility">
                     Visibilidade
                     <select
+                      id="comment-visibility"
                       value={visibility}
                       onChange={(event) => setVisibility(event.target.value as CommentVisibility)}
+                      disabled={isSubmitting}
                     >
-                      <option value="public">Público</option>
-                      <option value="internal">Interno</option>
+                      <option value="public">{formatCommentVisibility('public')}</option>
+                      <option value="internal">{formatCommentVisibility('internal')}</option>
                     </select>
                   </label>
                 ) : null}
@@ -331,19 +350,22 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
           {isTeam ? (
             <section aria-labelledby="events-title">
               <h2 id="events-title">Histórico</h2>
-              <ul className="comment-list">
-                {ticket.events.map((event) => (
-                  <li key={event.id}>
-                    <span className="badge badge--neutral">{formatTicketEvent(event.type)}</span>
-                    <span> · </span>
-                    <span>{event.actor?.name ?? 'Sistema'}</span>
-                    <span> · </span>
-                    <time>{new Date(event.createdAt).toLocaleString('pt-BR')}</time>
-                  </li>
-                ))}
-              </ul>
-              {ticket.events.length === 0 && (
+              {ticket.events.length === 0 ? (
                 <p className="empty-state">Nenhum evento registrado.</p>
+              ) : (
+                <ul className="comment-list">
+                  {ticket.events.map((event) => (
+                    <li key={event.id}>
+                      <span className="badge badge--neutral">{formatTicketEvent(event.type)}</span>
+                      <span> · </span>
+                      <span>{event.actor?.name ?? 'Sistema'}</span>
+                      <span> · </span>
+                      <time dateTime={event.createdAt}>
+                        {new Date(event.createdAt).toLocaleString('pt-BR')}
+                      </time>
+                    </li>
+                  ))}
+                </ul>
               )}
             </section>
           ) : null}

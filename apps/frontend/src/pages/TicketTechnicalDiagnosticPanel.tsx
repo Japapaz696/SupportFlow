@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import type {
   HttpMethod,
   TicketTechnicalDiagnostic,
@@ -45,7 +45,6 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
     if (!token) return;
     setIsLoading(true);
     setError('');
-    setSuccessMessage('');
     try {
       const data = await getTicketTechnicalDiagnostic(token, ticketId);
       if (data) {
@@ -63,8 +62,10 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
           notes: data.notes ?? '',
         });
       }
-    } catch (error) {
-      setError(error instanceof ApiError ? error.message : 'Erro ao carregar diagnóstico técnico.');
+    } catch (loadError) {
+      setError(
+        loadError instanceof ApiError ? loadError.message : 'Erro ao carregar diagnóstico técnico.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +77,7 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
 
   if (!isTeam) return null;
 
-  async function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!token) return;
     setIsSaving(true);
@@ -115,13 +116,23 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
         Não inclua senhas, tokens, Authorization headers, cookies, chaves de API, secrets ou strings
         de conexão.
       </p>
-      {message ? (
-        <p className="form-error" role="alert">
-          {message}
-        </p>
+      {error ? (
+        <div className="form-error" role="alert">
+          <p>{error}</p>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => void loadDiagnostic()}
+            disabled={isLoading}
+          >
+            Tentar novamente
+          </button>
+        </div>
       ) : null}
       {isLoading ? (
-        <p role="status">Carregando diagnóstico técnico…</p>
+        <p className="status-message" role="status">
+          Carregando diagnóstico técnico…
+        </p>
       ) : (
         <form onSubmit={handleSubmit} className="login-form" noValidate>
           <div className="form-group">
@@ -243,16 +254,11 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
             />
           </div>
 
-          {error && (
-            <p className="form-error" role="alert">
-              {error}
-            </p>
-          )}
-          {successMessage && (
-            <p className="form-success" role="alert">
+          {successMessage ? (
+            <p className="form-success" role="status">
               {successMessage}
             </p>
-          )}
+          ) : null}
 
           {!diagnostic && !isLoading && (
             <div className="empty-state">
