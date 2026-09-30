@@ -6,7 +6,7 @@ import type {
 } from '@supportflow/shared';
 
 import { useAuth } from '../auth/AuthContext';
-import { getTicketTechnicalDiagnostic, saveTicketTechnicalDiagnostic } from '../services/api';
+import { ApiError, getTicketTechnicalDiagnostic, saveTicketTechnicalDiagnostic } from '../services/api';
 
 type Props = {
   ticketId: string;
@@ -20,6 +20,7 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const isTeam = user?.role === 'agent' || user?.role === 'manager' || user?.role === 'admin';
 
@@ -40,6 +41,7 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
     if (!token) return;
     setIsLoading(true);
     setError('');
+    setSuccessMessage('');
     try {
       const data = await getTicketTechnicalDiagnostic(token, ticketId);
       if (data) {
@@ -58,7 +60,11 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
         });
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Erro ao carregar diagnóstico técnico.');
+      setError(
+        error instanceof ApiError
+          ? error.message
+          : 'Erro ao carregar diagnóstico técnico.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -75,6 +81,7 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
     if (!token) return;
     setIsSaving(true);
     setError('');
+    setSuccessMessage('');
     try {
       const payload: TicketTechnicalDiagnosticUpsert = {
         environment: state.environment || null,
@@ -91,8 +98,13 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
       await saveTicketTechnicalDiagnostic(token, ticketId, payload);
       await loadDiagnostic();
       onUpdated();
+      setSuccessMessage('Diagnóstico técnico salvo com sucesso!');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Não foi possível salvar o diagnóstico.');
+      setError(
+        error instanceof ApiError
+          ? error.message
+          : 'Não foi possível salvar o diagnóstico.'
+      );
     } finally {
       setIsSaving(false);
     }
@@ -105,6 +117,11 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
         Não inclua senhas, tokens, Authorization headers, cookies, chaves de API, secrets ou strings
         de conexão.
       </p>
+      {message ? (
+        <p className="form-error" role="alert">
+          {message}
+        </p>
+      ) : null}
       {isLoading ? (
         <p role="status">Carregando diagnóstico técnico…</p>
       ) : (
@@ -155,7 +172,7 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
               <option value="POST">POST</option>
               <option value="PUT">PUT</option>
               <option value="PATCH">PATCH</option>
-              <option value="DELETE">DELETE</option>
+              <option value="DELETE">DELETE</option
               <option value="OPTIONS">OPTIONS</option>
               <option value="HEAD">HEAD</option>
             </select>
@@ -231,6 +248,11 @@ export function TicketTechnicalDiagnosticPanel({ ticketId, isMutable = true, onU
           {error && (
             <p className="form-error" role="alert">
               {error}
+            </p>
+          )}
+          {successMessage && (
+            <p className="form-success" role="alert">
+              {successMessage}
             </p>
           )}
 
