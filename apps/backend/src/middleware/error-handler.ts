@@ -14,7 +14,17 @@ export const errorHandler: ErrorRequestHandler = (error, _request, response, _ne
     return;
   }
 
-  console.error('Unhandled error');
+  console.error('Unhandled error', {
+    name: error instanceof Error ? error.name : 'UnknownError',
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+    code:
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error
+        ? String(error.code)
+        : undefined,
+  });
   response.status(500).json({
     error: {
       code: 'INTERNAL_ERROR',
