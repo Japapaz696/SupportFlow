@@ -11,8 +11,9 @@ import {
   addComment,
   ApiError,
   assignTicket,
-  changeTicketPriority,
   changeTicketStatus,
+  changeTicketPriority,
+  changeTicketStatus as apiChangeTicketStatus,
   getTicket,
 } from '../services/api';
 import { TicketTechnicalDiagnosticPanel } from './TicketTechnicalDiagnosticPanel';
@@ -68,12 +69,14 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
   const [assigneeId, setAssigneeId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const loadTicket = useCallback(async () => {
     if (!token) return;
     setIsLoading(true);
     setTicket(null);
     setMessage('');
+    setSuccessMessage('');
     try {
       const result = await getTicket(token, id);
       setTicket(result);
@@ -108,6 +111,7 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
   async function runAction(action: () => Promise<TicketDetail>) {
     setIsSubmitting(true);
     setMessage('');
+    setSuccessMessage('');
     try {
       setTicket(await action());
       onChanged();
@@ -122,15 +126,31 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
     event.preventDefault();
     setIsSubmitting(true);
     setMessage('');
+    setSuccessMessage('');
     try {
       if (!token) return;
       await addComment(token, id, { body: commentBody, visibility });
       setCommentBody('');
       setVisibility('public');
+      setSuccessMessage('Comentário criado com sucesso!');
       await loadTicket();
       onChanged();
     } catch (error) {
       setMessage(error instanceof ApiError ? error.message : 'Não foi possível comentar.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function runAction(action: () => Promise<TicketDetail>) {
+    setIsSubmitting(true);
+    setMessage('');
+    setSuccessMessage('');
+    try {
+      setTicket(await action());
+      onChanged();
+    } catch (error) {
+      setMessage(error instanceof ApiError ? error.message : 'Não foi possível executar a ação.');
     } finally {
       setIsSubmitting(false);
     }
@@ -147,6 +167,11 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
         </p>
       ) : null}
       {isLoading ? <p role="status">Carregando chamado…</p> : null}
+      {successMessage && (
+        <p className="form-success" role="alert">
+          {successMessage}
+        </p>
+      )}
       {ticket ? (
         <>
           <div className="page-header">
@@ -306,7 +331,7 @@ export function TicketDetailPage({ id, onBack, onChanged }: Props) {
                 {ticket.events.map((event) => (
                   <li key={event.id}>
                     {event.type} · {event.actor?.name ?? 'Sistema'} ·{' '}
-                    {new Date(event.createdAt).toLocaleString('pt-BR')}
+                    <new Date(event.createdAt).toLocaleString('pt-BR')}
                   </li>
                 ))}
               </ul>
