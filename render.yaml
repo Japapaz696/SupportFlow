@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: supportflow-api
+    runtime: node
+    plan: free
+    # O monorepo tem workspaces, entao a build roda na raiz e o start aponta
+    # para o backend compilado.
+    buildCommand: npm ci && npm run build --workspace=@supportflow/shared && npm run build --workspace=@supportflow/backend
+    startCommand: node apps/backend/dist/index.js
+    # As migrations rodam antes de cada deploy. O esquema e idempotente.
+    preDeployCommand: npm run db:migrate --workspace=@supportflow/backend
+    # /ready consulta o banco: se ele estiver fora do ar, o servico nao entra
+    # em producao. /health sozinho diria "ok" mesmo com o banco quebrado.
+    healthCheckPath: /ready
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Definir no painel do Render, nunca no repositorio.
+      # - key: DATABASE_URL          (connection string do Postgres)
+      # - key: JWT_SECRET            (minimo 32 caracteres)
+      # - key: ADMIN_BOOTSTRAP_NAME
+      # - key: ADMIN_BOOTSTRAP_EMAIL
+      # - key: ADMIN_BOOTSTRAP_PASSWORD
+    regions:
+      - oregon
+
+# O Postgres do Render no plano gratuito EXPIRA 30 dias depois da criacao e nao
+# tem backup nenhum. Por isso a recommendation e usar o Neon gratuito, que e
+# permanente, e apontar DATABASE_URL para ele.
+#
+# Para usar o banco do Render em vez do Neon, descomente o bloco abaixo,
+# apague o DATABASE_URL das envVars acima e defina-o com fromDatabase.
+#
+# databases:
+#   - name: supportflow-db
+#     plan: free
+#     databaseName: supportflow
+#     # O plano gratuito expira em 30 dias e o Render avisa por e-mail.
