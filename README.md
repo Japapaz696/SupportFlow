@@ -95,6 +95,14 @@ sanitizados antes do envio.
 
 ## Validação
 
+**116 testes** em três suítes:
+
+| Suíte             | Testes | O que cobre                                                                         | Precisa de banco |
+| ----------------- | ------ | ----------------------------------------------------------------------------------- | ---------------- |
+| `packages/shared` | 10     | contrato das listas compartilhadas (papeis, estados, prioridades, SLA)              | não              |
+| `apps/backend`    | 80     | integração completa: auth, RBAC, tickets, SLA, dashboard, notificações, diagnóstico | **sim**          |
+| `apps/frontend`   | 26     | camada de API, contexto de autenticação, tela de login                              | não              |
+
 Os testes de integração nunca escrevem nas tabelas de desenvolvimento: usam `TEST_DATABASE_URL`
 quando definida ou o schema isolado `supportflow_test`. O banco/schema de teste deve existir e receber
 as migrations antes da suíte.
@@ -109,26 +117,68 @@ npm run test
 npm audit --omit=dev
 ```
 
+`npm run test` roda as três suítes. Para rodar uma só:
+
+```powershell
+npm run test:backend
+npm run test:frontend
+```
+
+O **CI** (`npm run validate`) roda tudo a cada push: formatação, lint, tipos, build e as
+três suítes, com um PostgreSQL 16 de serviço.
+
+### O que o frontend cobre hoje
+
+- a camada de API monta a URL, envia o token, trata `204` e erros sem JSON;
+- um `401` em rota autenticada **encerra a sessão e avisa** — antes, a tela ficava
+  travada com "não foi possível carregar", sem explicar que o token tinha expirado;
+- o login falha de forma previsível, com a mensagem do servidor;
+- o formulário se desabilita durante o envio;
+- o aviso de sessão expirada aparece na tela de login.
+
 Consulte [docs/API.md](docs/API.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e
 [docs/DATABASE.md](docs/DATABASE.md) para contratos, arquitetura e modelo de dados.
 
 ## Demonstração do fluxo
 
-Com o backend em execução e um administrador criado (`npm run bootstrap:admin`), o script
-`demo:fluxo` exercita o caminho completo — login, criação de categoria e política de SLA
-quando ainda não existem, abertura de ticket, comentário, diagnóstico técnico, dashboard,
-notificações, listagem de usuários — e verifica também os casos de rejeição: senha
-errada, rota sem token, token inválido, campo desconhecido no payload e rota inexistente.
+O script `demo:fluxo` exercita o caminho completo e verifica também os casos de
+rejeição. Ele roda com **dois papéis**, porque as permissões são o heart do
+sistema:
+
+- **solicitante** — abre chamado, vê só os próprios, e **não** acessa o
+  diagnóstico técnico, o dashboard global nem a lista de usuários;
+- **administrador** — acessa os três.
 
 ```powershell
 $env:DEMO_URL = 'http://127.0.0.1:3000'
-$env:DEMO_EMAIL = 'admin@example.com'
-$env:DEMO_PASSWORD = '<senha do administrador>'
+$env:DEMO_EMAIL = 'requester@exemplo.invalid'
+$env:DEMO_PASSWORD = 'demo-ficticia-123456'
+$env:DEMO_ADMIN_EMAIL = 'demo-admin@exemplo.invalid'
+$env:DEMO_ADMIN_PASSWORD = 'demo-ficticia-123456'
 npm run demo:fluxo
 ```
 
 A saída é um relatório de verificações e o código de saída é diferente de zero se
 alguma falhar. O script não imprime tokens nem dados pessoais.
+
+### Dados de demonstração
+
+`npm run seed:demo` popula o sistema com **dados totalmente fictícios**: e-mails no
+domínio `.invalid`, nomes com o prefixo "Demo Ficticia", mensagens inventadas, e as
+quatro contas do sistema (solicitante, agente, gestor e administrador).
+
+```powershell
+$env:ALLOW_SEED_FICTITIO = 'sim'
+npm run seed:demo
+```
+
+Se `DEMO_ADMIN_EMAIL` e `DEMO_ADMIN_PASSWORD` não estiverem definidos, o seed cria
+uma **conta de demonstração própria**, com e-mail exclusivo (`demo-admin@exemplo.invalid`),
+direto no banco — **sem alterar nenhuma conta existente**. Ele é repetível: ao rodar
+de novo, desativa apenas os registros de demonstração anteriores.
+
+Detalhes do roteiro, incluindo os cuidados para expor a demonstração publicamente,
+em [docs/DEMONSTRACAO.md](docs/DEMONSTRACAO.md).
 
 ## Nota sobre finais de linha
 

@@ -168,6 +168,7 @@ h2 {
 }
 
 .form-error,
+.form-notice,
 .success-message,
 .form-success,
 .status-message {
@@ -181,6 +182,14 @@ h2 {
   color: var(--color-danger);
   background: var(--color-danger-bg);
   border: 1px solid #fecdca;
+}
+
+/* Aviso informativo, como sessao expirada. Nao e erro: nao usa a cor de
+   perigo, para nao alarmar quem apenas precisa entrar de novo. */
+.form-notice {
+  color: var(--color-muted);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
 }
 
 .success-message,

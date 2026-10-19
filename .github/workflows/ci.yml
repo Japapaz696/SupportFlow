@@ -80,5 +80,13 @@ jobs:
       # format:check && lint && typecheck && build && test.
       # O typecheck/build compilam o pacote @supportflow/shared, exigido
       # pela suite de integracao.
+      #
+      # O "test" da raiz roda as tres suites: shared, backend e frontend.
       - name: Rodar a validacao completa
         run: npm run validate
+
+      # Os testes do frontend rodam em jsdom e nao precisam de banco. Rodam
+      # separados para que uma falha de interface nao esconda a suite do
+      # backend no relatorio do CI.
+      - name: Rodar os testes do frontend
+        run: npm run test:frontend

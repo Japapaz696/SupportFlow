@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { ApiError } from '../services/api';
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, sessionNotice } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -33,6 +33,12 @@ export function LoginPage() {
       <p className="eyebrow">SupportFlow</p>
       <h1 id="login-title">Acesse sua conta</h1>
       <p className="supporting-text">Entre com o e-mail e a senha cadastrados.</p>
+
+      {sessionNotice ? (
+        <p className="form-notice" role="status">
+          {sessionNotice}
+        </p>
+      ) : null}
 
       <form onSubmit={handleSubmit} className="login-form" aria-busy={isSubmitting}>
         <label htmlFor="email">E-mail</label>

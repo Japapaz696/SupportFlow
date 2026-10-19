@@ -1,4 +1,6 @@
-import { defineConfig } from 'vite';
+// A definicao vem do vitest/config (e nao do vite) para que a secao "test"
+// seja reconhecida pelo TypeScript.
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
@@ -8,5 +10,12 @@ export default defineConfig({
       '/api': 'http://localhost:3000',
       '/health': 'http://localhost:3000',
     },
+  },
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
+    css: false,
   },
 });

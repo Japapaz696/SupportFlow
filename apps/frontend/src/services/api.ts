@@ -29,6 +29,22 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Notificacao de sessao expirada.
+ *
+ * O token JWT vive so na memoria e expira em pouco tempo. Sem este aviso, uma
+ * requisicao que volta 401 deixa a tela travada com "nao foi possivel
+ * carregar", sem explicar que a sessao acabou. O provedor registra o tratador
+ * e o AuthContext encerra a sessao.
+ */
+type UnauthorizedHandler = () => void;
+
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
+  unauthorizedHandler = handler;
+}
+
 type ErrorResponse = {
   error?: {
     message?: string;
@@ -37,13 +53,20 @@ type ErrorResponse = {
 
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
   const headers = new Headers(options.headers);
-  headers.set('Content-Type', 'application/json');
+  // GET e DELETE nao leva corpo: enviar Content-Type neles confunde o proxy.
+  if (options.body !== undefined) {
+    headers.set('Content-Type', 'application/json');
+  }
 
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(`${apiBaseUrl}${path}`, { ...options, headers });
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    method: options.method ?? 'GET',
+    ...options,
+    headers,
+  });
 
   if (!response.ok) {
     let message = 'Não foi possível concluir a solicitação.';
@@ -53,6 +76,12 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
       message = body.error?.message ?? message;
     } catch {
       // Keep the generic message for non-JSON errors.
+    }
+
+    // 401 numa rota autenticada significa sessao expirada. O proprio login
+    // responde 401 para credenciais erradas, e nesse caso nao e sessao expirada.
+    if (response.status === 401 && !path.startsWith('/auth/login')) {
+      unauthorizedHandler?.();
     }
 
     throw new ApiError(response.status, message);

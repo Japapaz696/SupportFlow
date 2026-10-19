@@ -46,6 +46,14 @@ Não iniciar M8 neste contexto.
 - Testes: `m5.integration.test.ts` e `m7.integration.test.ts`; clock injetável via `domain/clock.ts`. Suíte usa ambiente isolado
   `TEST_DATABASE_URL` ou schema `supportflow_test`, nunca `public`. Backend executa testes serialmente
   para impedir competição sobre a chave única de `sla_policies.priority`.
+- Cobertura atual: 116 testes em três suítes — `packages/shared` (10, contrato das listas compartilhadas),
+  `apps/backend` (80, integração) e `apps/frontend` (26, camada de API, contexto de autenticação e tela de
+  login, em jsdom). `npm run test` na raiz roda as três; `npm run validate` roda formatação, lint, tipos,
+  build e as três suítes.
+- Sessão expirada: um `401` em rota autenticada (fora do login) encerra a sessão e mostra um aviso na tela
+  de login, em vez de deixar a página travada. O tratador é registrado por `setUnauthorizedHandler` em
+  `services/api.ts`.
+- O token JWT vive só em memória. Não há persistência de sessão nem `localStorage`/`sessionStorage`.
 
 ## Regras de acesso
 
