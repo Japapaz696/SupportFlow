@@ -111,3 +111,27 @@ npm audit --omit=dev
 
 Consulte [docs/API.md](docs/API.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) e
 [docs/DATABASE.md](docs/DATABASE.md) para contratos, arquitetura e modelo de dados.
+
+## Demonstração do fluxo
+
+Com o backend em execução e um administrador criado (`npm run bootstrap:admin`), o script
+`demo:fluxo` exercita o caminho completo — login, criação de categoria e política de SLA
+quando ainda não existem, abertura de ticket, comentário, diagnóstico técnico, dashboard,
+notificações, listagem de usuários — e verifica também os casos de rejeição: senha
+errada, rota sem token, token inválido, campo desconhecido no payload e rota inexistente.
+
+```powershell
+$env:DEMO_URL = 'http://127.0.0.1:3000'
+$env:DEMO_EMAIL = 'admin@example.com'
+$env:DEMO_PASSWORD = '<senha do administrador>'
+npm run demo:fluxo
+```
+
+A saída é um relatório de verificações e o código de saída é diferente de zero se
+alguma falhar. O script não imprime tokens nem dados pessoais.
+
+## Nota sobre finais de linha
+
+O repositório traz `.gitattributes` com `* text=auto eol=lf`. Sem ele, um clone no
+Windows (com `core.autocrlf=true`) converte os arquivos para CRLF e o
+`npm run format:check` falha em cerca de 110 arquivos, mesmo com o código correto.

@@ -24,6 +24,7 @@
     "db:migrate": "npm run db:migrate --workspace=@supportflow/backend",
     "bootstrap:admin": "npm run bootstrap:admin --workspace=@supportflow/backend",
     "test": "npm run test --workspace=@supportflow/backend",
+    "demo:fluxo": "node scripts/demo-fluxo.mjs",
     "validate": "npm run format:check && npm run lint && npm run typecheck && npm run build && npm run test"
   },
   "devDependencies": {
