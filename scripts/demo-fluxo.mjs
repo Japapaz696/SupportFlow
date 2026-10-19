@@ -9,6 +9,10 @@
 // Cria os dados de apoio que faltam (categoria e politica SLA), exercita o
 // fluxo e imprime um relatorio. Nao imprime dados pessoais nem tokens.
 
+import { carregarEnv } from './carregar-env.mjs';
+
+carregarEnv();
+
 const BASE = (process.env.DEMO_URL ?? 'http://127.0.0.1:3000').replace(/\/$/, '');
 const EMAIL = process.env.DEMO_EMAIL;
 const PASSWORD = process.env.DEMO_PASSWORD;

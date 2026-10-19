@@ -29,6 +29,10 @@
  *   admin     -> tudo acima, mais administracao de usuarios
  */
 
+import { carregarEnv } from './carregar-env.mjs';
+
+carregarEnv();
+
 const ALLOW = process.env.ALLOW_SEED_FICTITIO;
 if (ALLOW !== 'sim') {
   console.error('Defina ALLOW_SEED_FICTITIO=sim para confirmar que e um seed de ficticios.');
