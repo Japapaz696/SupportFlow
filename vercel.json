@@ -4,6 +4,14 @@
     {
       "source": "/api/:path*",
       "destination": "https://supportflow-api-qwzy.onrender.com/api/:path*"
+    },
+    {
+      "source": "/health",
+      "destination": "https://supportflow-api-qwzy.onrender.com/health"
+    },
+    {
+      "source": "/ready",
+      "destination": "https://supportflow-api-qwzy.onrender.com/ready"
     }
   ]
 }
