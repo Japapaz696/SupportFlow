@@ -19,9 +19,7 @@ export const errorHandler: ErrorRequestHandler = (error, _request, response, _ne
     message: error instanceof Error ? error.message : String(error),
     stack: error instanceof Error ? error.stack : undefined,
     code:
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error
+      typeof error === 'object' && error !== null && 'code' in error
         ? String(error.code)
         : undefined,
   });
