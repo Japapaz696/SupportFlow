@@ -16,6 +16,10 @@ carregarEnv();
 const BASE = (process.env.DEMO_URL ?? 'http://127.0.0.1:3000').replace(/\/$/, '');
 const EMAIL = process.env.DEMO_EMAIL;
 const PASSWORD = process.env.DEMO_PASSWORD;
+// A conta de administrador e opcional. Sem ela, o script verifica apenas o
+// que o solicitante pode fazer. Com ela, verifica tambem o acesso restrito.
+const ADMIN_EMAIL = process.env.DEMO_ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.DEMO_ADMIN_PASSWORD;
 
 if (!EMAIL || !PASSWORD) {
   console.error('Defina DEMO_EMAIL e DEMO_PASSWORD.');
@@ -148,23 +152,79 @@ if (ticketId) {
     body: { body: 'Comentario de demonstracao.' },
   });
   registrar('POST /tickets/:id/comments', comentario.status === 201, comentario.status);
-
-  const diagnostico = await api(`/api/v1/tickets/${ticketId}/technical-diagnostic`, { token });
-  registrar(
-    'GET /tickets/:id/technical-diagnostic',
-    diagnostico.status === 200,
-    diagnostico.status,
-  );
 }
 
-const dashboard = await api('/api/v1/dashboard/summary', { token });
-registrar('GET /dashboard/summary', dashboard.status === 200, dashboard.status);
+// O solicitante nao tem acesso ao diagnostico tecnico, ao dashboard global nem
+// a lista de usuarios. Isso e o controle de acesso funcionando, nao uma falha.
+const diagnosticoSolicitante = await api(
+  `/api/v1/tickets/${ticketId ?? 'inexistente'}/technical-diagnostic`,
+  { token },
+);
+registrar(
+  'solicitante nao acessa diagnostico tecnico',
+  [403, 404].includes(diagnosticoSolicitante.status),
+  diagnosticoSolicitante.status,
+);
+
+const dashboardSolicitante = await api('/api/v1/dashboard/summary', { token });
+registrar(
+  'solicitante nao acessa o dashboard global',
+  dashboardSolicitante.status === 403,
+  dashboardSolicitante.status,
+);
+
+const usuariosSolicitante = await api('/api/v1/users', { token });
+registrar(
+  'solicitante nao lista usuarios',
+  usuariosSolicitante.status === 403,
+  usuariosSolicitante.status,
+);
 
 const notificacoes = await api('/api/v1/notifications', { token });
 registrar('GET /notifications', notificacoes.status === 200, notificacoes.status);
 
-const usuarios = await api('/api/v1/users', { token });
-registrar('GET /users', usuarios.status === 200, usuarios.status);
+// A partir daqui, as rotas restritas exigem a conta de administrador.
+if (ADMIN_EMAIL && ADMIN_PASSWORD) {
+  const loginAdmin = await api('/api/v1/auth/login', {
+    method: 'POST',
+    body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
+  });
+  const tokenAdmin = loginAdmin.json?.token ?? loginAdmin.json?.accessToken;
+  registrar(
+    'login do administrador',
+    loginAdmin.status === 200 && Boolean(tokenAdmin),
+    loginAdmin.status,
+  );
+
+  if (tokenAdmin) {
+    if (ticketId) {
+      const diagnostico = await api(`/api/v1/tickets/${ticketId}/technical-diagnostic`, {
+        token: tokenAdmin,
+      });
+      registrar(
+        'administrador acessa diagnostico tecnico',
+        diagnostico.status === 200,
+        diagnostico.status,
+      );
+    }
+
+    const dashboard = await api('/api/v1/dashboard/summary', { token: tokenAdmin });
+    registrar(
+      'administrador acessa o dashboard global',
+      dashboard.status === 200,
+      dashboard.status,
+    );
+
+    const usuarios = await api('/api/v1/users', { token: tokenAdmin });
+    registrar('administrador lista usuarios', usuarios.status === 200, usuarios.status);
+  }
+} else {
+  registrar(
+    'verificacoes restritas de administrador',
+    false,
+    'defina DEMO_ADMIN_EMAIL e DEMO_ADMIN_PASSWORD',
+  );
+}
 
 // Payload com campo desconhecido deve ser rejeitado: o cliente nao decide
 // status, actor_id nem prazo de SLA.

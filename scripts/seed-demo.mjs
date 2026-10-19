@@ -44,12 +44,9 @@ const ADMIN_EMAIL = process.env.DEMO_ADMIN_EMAIL;
 const ADMIN_PASSWORD = process.env.DEMO_ADMIN_PASSWORD;
 const SENHA_DEMO = process.env.DEMO_PASSWORD ?? 'demo-ficticia-123456';
 
-if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
-  console.error(
-    'Defina DEMO_ADMIN_EMAIL e DEMO_ADMIN_PASSWORD (conta de administrador ja criada).',
-  );
-  process.exit(1);
-}
+// Sem as credenciais do administrador, o script cria uma conta de demonstracao
+// propria (e-mail exclusivo, senha conhecida) direto no banco, sem tocar em
+// nenhuma conta existente. Ver a funcao garantirAdminDeDemonstracao abaixo.
 
 async function api(path, { method = 'GET', token, body } = {}) {
   const headers = { 'content-type': 'application/json' };
@@ -76,9 +73,55 @@ function exige(condicao, mensagem) {
   }
 }
 
+// Se a senha do administrador nao estiver definida, o script garante uma conta
+// de demonstracao com senha conhecida, direto no banco. Nenhuma conta existente
+// e alterada: a conta de demonstracao tem e-mail proprio.
+async function garantirAdminDeDemonstracao() {
+  const { Pool } = await import('pg');
+  const bcrypt = (await import('bcryptjs')).default;
+  const url = process.env.DATABASE_URL;
+  exige(url, 'DATABASE_URL nao definida: nao da para garantir o administrador de demonstracao');
+
+  const ssl = /[?&]sslmode=disable/.test(url) ? false : { rejectUnauthorized: false };
+  const pool = new Pool({ connectionString: url, ssl, max: 2 });
+  const email = 'demo-admin@exemplo.invalid';
+  const senha = 'demo-ficticia-123456';
+
+  try {
+    const { rows } = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (rows.length) {
+      await pool.query('UPDATE users SET role = $2, is_active = TRUE WHERE email = $1', [
+        email,
+        'admin',
+      ]);
+      console.log('Administrador de demonstracao reativado.');
+    } else {
+      const hash = await bcrypt.hash(senha, 12);
+      await pool.query(
+        'INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4)',
+        ['Demo Ficticia Administrador', email, hash, 'admin'],
+      );
+      console.log('Administrador de demonstracao criado.');
+    }
+  } finally {
+    await pool.end();
+  }
+  return { email, senha };
+}
+
+let adminEmail = ADMIN_EMAIL;
+let adminPassword = ADMIN_PASSWORD;
+
+if (!adminEmail || !adminPassword) {
+  const criado = await garantirAdminDeDemonstracao();
+  adminEmail = criado.email;
+  adminPassword = criado.senha;
+  console.log('Usando a conta de demonstracao recem-criada.');
+}
+
 const login = await api('/api/v1/auth/login', {
   method: 'POST',
-  body: { email: ADMIN_EMAIL, password: ADMIN_PASSWORD },
+  body: { email: adminEmail, password: adminPassword },
 });
 exige(login.status === 200, 'login do administrador falhou');
 const adminToken = login.json?.token;
@@ -86,10 +129,11 @@ exige(Boolean(adminToken), 'token do administrador ausente');
 console.log('Conectado como administrador.');
 
 // --- limpeza do que e de demonstracao ---
-// A conta de administrador e preservada: ela nao e um usuario de demonstracao.
+// A conta que esta sendo usada agora e preservada: sem isso, o proprio
+// administrador de demonstracao se desativaria e a sessao perderia o acesso.
 const usuarios = await api('/api/v1/users?pageSize=100', { token: adminToken });
 const alvos = (usuarios.json?.users ?? []).filter(
-  (u) => String(u.email).endsWith('@exemplo.invalid') && u.email !== ADMIN_EMAIL,
+  (u) => String(u.email).endsWith('@exemplo.invalid') && u.email !== adminEmail,
 );
 for (const usuario of alvos) {
   await api(`/api/v1/users/${usuario.id}`, {
