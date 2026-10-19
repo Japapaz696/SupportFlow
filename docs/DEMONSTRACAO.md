@@ -110,6 +110,27 @@ $env:DEMO_PASSWORD = 'demo-ficticia-123456'
 npm run demo:fluxo
 ```
 
+## 3.1 Duas rotas de saúde, com propósitos diferentes
+
+| Rota          | Consulta o banco | Quando usar                                      |
+| ------------- | ---------------- | ------------------------------------------------ |
+| `GET /health` | não              | liveness: o processo responde                    |
+| `GET /ready`  | **sim**          | readiness: o serviço consegue atender de verdade |
+
+Essa distinção existe por um motivo concreto: a implantação anterior em
+`supportflow-api-qwzy.onrender.com` respondia `/health` com `{"status":"ok"}`
+enquanto **todo login devolvia 500**, porque o banco estava inacessível. Um
+health check único que não olha para a dependência esconde a falha.
+
+Verifique sempre o `/ready` antes de apresentar uma demonstração:
+
+```powershell
+(Invoke-WebRequest "$env:DEMO_URL/ready" -UseBasicParsing).Content
+```
+
+Esperado: `{"status":"ok","database":"ok"}`. Se vier `503`, o banco está fora
+do ar e a demonstração não vai funcionar — resolva antes de continuar.
+
 ## 4. Para expor a demonstração publicamente
 
 Se for necessário expor a demonstração para terceiros:
