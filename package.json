@@ -25,7 +25,8 @@
     "bootstrap:admin": "npm run bootstrap:admin --workspace=@supportflow/backend",
     "test": "npm run test --workspace=@supportflow/backend",
     "demo:fluxo": "node scripts/demo-fluxo.mjs",
-    "validate": "npm run format:check && npm run lint && npm run typecheck && npm run build && npm run test"
+    "validate": "npm run format:check && npm run lint && npm run typecheck && npm run build && npm run test",
+    "seed:demo": "node scripts/seed-demo.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
