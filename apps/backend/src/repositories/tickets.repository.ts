@@ -46,6 +46,7 @@ export type TicketListFilters = {
   priority?: TicketPriority;
   categoryId?: string;
   assigneeId?: string;
+  search?: string;
   limit: number;
   offset: number;
 };
@@ -80,6 +81,15 @@ export async function listTickets(
   if (filters.assigneeId) {
     values.push(filters.assigneeId);
     where.push(`t.assignee_id = $${values.length}`);
+  }
+
+  if (filters.search) {
+    // Busca por codigo, titulo ou descricao. O termo vai como parametro
+    // parametrizado; o ILIKE garante que % e _ do usuario nao viram curinga.
+    values.push(`%${filters.search}%`);
+    where.push(
+      `(t.title ILIKE $${values.length} OR t.description ILIKE $${values.length} OR t.code ILIKE $${values.length})`,
+    );
   }
 
   const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';

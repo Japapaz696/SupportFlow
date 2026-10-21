@@ -1,4 +1,4 @@
-import type { User } from '@supportflow/shared';
+import type { AssignableUser, User } from '@supportflow/shared';
 
 import { toUser, type CreateUserInput, type UpdateUserInput } from '../domain/users.js';
 import { HttpError } from '../errors/http-error.js';
@@ -6,6 +6,7 @@ import {
   createUser as createUserRecord,
   findUserByEmail,
   findUserById,
+  listAssignableUsers as listAssignableUserRecords,
   listUsers as listUserRecords,
   updateUser as updateUserRecord,
 } from '../repositories/users.repository.js';
@@ -17,6 +18,10 @@ export async function listUsers(
   const result = await listUserRecords(pageSize, (page - 1) * pageSize);
 
   return { users: result.users.map(toUser), total: result.total };
+}
+
+export async function listAssignableUsers(): Promise<AssignableUser[]> {
+  return listAssignableUserRecords();
 }
 
 export async function getUser(id: string): Promise<User> {

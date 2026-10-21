@@ -1,4 +1,5 @@
 import type { PoolClient } from 'pg';
+import type { UserRole } from '@supportflow/shared';
 
 import type { CreateUserInput, UpdateUserInput, UserRow } from '../domain/users.js';
 import { pool } from '../database/pool.js';
@@ -61,6 +62,28 @@ export async function listUsers(
   ]);
 
   return { users: usersResult.rows, total: Number(countResult.rows[0]?.total ?? 0) };
+}
+
+/**
+ * Usuarios que podem receber um chamado.
+ *
+ * Regra de negocio existente (services/tickets.service.ts): o responsavel
+ * precisa ser um agente ativo. Por isso a lista abaixo traz apenas `agent`,
+ * para que a interface nunca ofereca um responsavel que a API rejeitaria.
+ */
+export async function listAssignableUsers(): Promise<
+  Array<{ id: string; name: string; email: string; role: UserRole }>
+> {
+  const result = await pool.query<{ id: string; name: string; email: string; role: UserRole }>(
+    `
+      SELECT id, name, email, role
+      FROM users
+      WHERE is_active = true AND role = 'agent'
+      ORDER BY name ASC
+    `,
+  );
+
+  return result.rows;
 }
 
 export async function createUser(input: CreateUserInput): Promise<UserRow> {

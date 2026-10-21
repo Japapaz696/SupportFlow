@@ -1,5 +1,6 @@
 import type {
   AuthUser,
+  AssignableUser,
   Category,
   CommentVisibility,
   DashboardSummary,
@@ -183,6 +184,11 @@ export async function readAllNotifications(token: string): Promise<number> {
   return response.updated;
 }
 
+export async function listAssignableUsers(token: string): Promise<AssignableUser[]> {
+  const response = await request<{ users: AssignableUser[] }>('/users/assignable', {}, token);
+  return response.users;
+}
+
 export async function getDashboardSummary(token: string): Promise<DashboardSummary> {
   const response = await request<{ summary: DashboardSummary }>('/dashboard/summary', {}, token);
   return response.summary;
@@ -217,7 +223,13 @@ export async function updateSlaPolicy(
 
 export function listTickets(
   token: string,
-  filters: { page: number; pageSize: number; status?: string; priority?: string },
+  filters: {
+    page: number;
+    pageSize: number;
+    status?: string;
+    priority?: string;
+    search?: string;
+  },
 ): Promise<Paginated<TicketListItem>> {
   const params = new URLSearchParams({
     page: String(filters.page),
@@ -226,6 +238,7 @@ export function listTickets(
 
   if (filters.status) params.set('status', filters.status);
   if (filters.priority) params.set('priority', filters.priority);
+  if (filters.search) params.set('search', filters.search);
   return request<Paginated<TicketListItem>>(`/tickets?${params.toString()}`, {}, token);
 }
 

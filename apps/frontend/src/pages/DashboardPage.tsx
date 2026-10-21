@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { DashboardSummary, TicketPriority } from '@supportflow/shared';
 
 import { useAuth } from '../auth/AuthContext';
+import { useToast } from '../components/Toast';
 import { ApiError, getDashboardSummary } from '../services/api';
 import {
   formatTicketPriority,
@@ -33,6 +34,7 @@ function minutes(value: number | null): string {
 
 export function DashboardPage({ onOpenTicket }: Props) {
   const { token } = useAuth();
+  const { showToast } = useToast();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -44,13 +46,14 @@ export function DashboardPage({ onOpenTicket }: Props) {
     try {
       setSummary(await getDashboardSummary(token));
     } catch (error) {
-      setMessage(
-        error instanceof ApiError ? error.message : 'Não foi possível carregar o dashboard.',
-      );
+      const msg =
+        error instanceof ApiError ? error.message : 'Não foi possível carregar o dashboard.';
+      setMessage(msg);
+      showToast('error', msg);
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, [showToast, token]);
 
   useEffect(() => {
     void load();
@@ -58,9 +61,11 @@ export function DashboardPage({ onOpenTicket }: Props) {
 
   if (isLoading) {
     return (
-      <p className="status-message" role="status">
-        Carregando dashboard…
-      </p>
+      <div className="skeleton-stack" aria-hidden="true">
+        <div className="skeleton skeleton--title" />
+        <div className="skeleton skeleton--block" />
+        <div className="skeleton skeleton--text" />
+      </div>
     );
   }
   if (message) {

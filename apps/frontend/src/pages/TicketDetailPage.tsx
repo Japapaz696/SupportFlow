@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import type {
+  AssignableUser,
   CommentVisibility,
   TicketDetail,
   TicketPriority,
@@ -7,6 +8,7 @@ import type {
 } from '@supportflow/shared';
 
 import { useAuth } from '../auth/AuthContext';
+import { useToast } from '../components/Toast';
 import {
   addComment,
   ApiError,
@@ -14,6 +16,7 @@ import {
   changeTicketPriority,
   changeTicketStatus,
   getTicket,
+  listAssignableUsers,
 } from '../services/api';
 import {
   formatCommentVisibility,
@@ -63,18 +66,32 @@ const statusTransitions: Record<TicketStatus, TicketStatus[]> = {
   cancelled: [],
 };
 
+function TicketDetailSkeleton() {
+  return (
+    <div className="skeleton-stack" aria-hidden="true">
+      <div className="skeleton skeleton--title" />
+      <div className="skeleton skeleton--text" />
+      <div className="skeleton skeleton--text" />
+      <div className="skeleton skeleton--block" />
+    </div>
+  );
+}
+
 export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false }: Props) {
   const { token, user } = useAuth();
+  const { showToast } = useToast();
   const [ticket, setTicket] = useState<TicketDetail | null>(null);
+  const [assignees, setAssignees] = useState<AssignableUser[]>([]);
   const [message, setMessage] = useState('');
   const [commentBody, setCommentBody] = useState('');
+  const [commentError, setCommentError] = useState('');
   const [visibility, setVisibility] = useState<CommentVisibility>('public');
   const [assigneeId, setAssigneeId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState(
-    createdNotice ? 'Chamado criado com sucesso!' : '',
-  );
+
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
 
   const loadTicket = useCallback(async () => {
     if (!token) return;
@@ -95,13 +112,32 @@ export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false 
 
   useEffect(() => {
     setTicket(null);
-    setSuccessMessage(createdNotice ? 'Chamado criado com sucesso!' : '');
+    if (createdNotice) showToast('success', 'Chamado criado com sucesso.');
     void loadTicket();
-  }, [createdNotice, loadTicket]);
+  }, [createdNotice, loadTicket, showToast]);
+
+  // Carrega a lista de equipe para o seletor de responsavel. Apenas gestor e
+  // admin podem reatribuir (a API bloqueia agente com 403), entao so eles
+  // precisam da lista.
+  useEffect(() => {
+    if (!token) return;
+    if (user?.role !== 'manager' && user?.role !== 'admin') return;
+    listAssignableUsers(token)
+      .then(setAssignees)
+      .catch(() => setAssignees([]));
+  }, [token, user?.role]);
+
+  // Move o foco para o titulo quando o ticket carrega: navegacao por teclado
+  // e leitores de tela percebem a mudanca de contexto.
+  useEffect(() => {
+    if (ticket) titleRef.current?.focus();
+  }, [ticket?.id]);
 
   if (!token || !user) return null;
   const isTeam = user.role === 'agent' || user.role === 'manager' || user.role === 'admin';
   const canManagePriority = user.role === 'manager' || user.role === 'admin';
+  // Somente gestor e admin podem reatribuir para outra pessoa.
+  const canReassign = canManagePriority;
   const isMutable = ticket?.status !== 'closed' && ticket?.status !== 'cancelled';
   const availableStatuses = ticket
     ? [
@@ -113,16 +149,19 @@ export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false 
       ]
     : [];
 
-  async function runAction(action: () => Promise<TicketDetail>) {
+  async function runAction(action: () => Promise<TicketDetail>, successMsg: string) {
+    if (isSubmitting) return; // protecao contra duplo envio
     setIsSubmitting(true);
     setMessage('');
-    setSuccessMessage('');
     try {
       setTicket(await action());
-      setSuccessMessage('Chamado atualizado com sucesso!');
+      showToast('success', successMsg);
       onChanged();
     } catch (error) {
-      setMessage(error instanceof ApiError ? error.message : 'Não foi possível executar a ação.');
+      const msg = error instanceof ApiError ? error.message : 'Não foi possível executar a ação.';
+      setMessage(msg);
+      showToast('error', msg);
+      errorRef.current?.focus();
     } finally {
       setIsSubmitting(false);
     }
@@ -130,19 +169,26 @@ export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false 
 
   async function submitComment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (isSubmitting) return;
+    if (commentBody.trim().length < 2) {
+      setCommentError('Escreva ao menos 2 caracteres.');
+      return;
+    }
+    setCommentError('');
     setIsSubmitting(true);
     setMessage('');
-    setSuccessMessage('');
     try {
       if (!token) return;
-      await addComment(token, id, { body: commentBody, visibility });
+      await addComment(token, id, { body: commentBody.trim(), visibility });
       setCommentBody('');
       setVisibility('public');
-      setSuccessMessage('Comentário criado com sucesso!');
+      showToast('success', 'Comentário publicado.');
       await loadTicket();
       onChanged();
     } catch (error) {
-      setMessage(error instanceof ApiError ? error.message : 'Não foi possível comentar.');
+      const msg = error instanceof ApiError ? error.message : 'Não foi possível comentar.';
+      setMessage(msg);
+      showToast('error', msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -151,10 +197,13 @@ export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false 
   return (
     <section className="ticket-detail" aria-labelledby="ticket-detail-title">
       <button type="button" className="secondary-button" onClick={onBack}>
-        Voltar
+        ← Voltar
       </button>
+
+      {isLoading ? <TicketDetailSkeleton /> : null}
+
       {message ? (
-        <div className="form-error" role="alert">
+        <div className="form-error" role="alert" ref={errorRef} tabIndex={-1}>
           <p>{message}</p>
           {!ticket ? (
             <button className="secondary-button" type="button" onClick={() => void loadTicket()}>
@@ -163,22 +212,15 @@ export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false 
           ) : null}
         </div>
       ) : null}
-      {isLoading ? (
-        <p className="status-message" role="status">
-          Carregando chamado…
-        </p>
-      ) : null}
-      {successMessage ? (
-        <p className="form-success" role="status">
-          {successMessage}
-        </p>
-      ) : null}
+
       {ticket ? (
         <>
           <div className="page-header">
             <div>
               <p className="eyebrow">{ticket.code}</p>
-              <h1 id="ticket-detail-title">{ticket.title}</h1>
+              <h1 id="ticket-detail-title" tabIndex={-1} ref={titleRef}>
+                {ticket.title}
+              </h1>
             </div>
             <span className={statusBadgeClass(ticket.status)}>
               {formatTicketStatus(ticket.status)}
@@ -227,8 +269,9 @@ export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false 
                   value={ticket.status}
                   onChange={(event) =>
                     token &&
-                    void runAction(() =>
-                      changeTicketStatus(token, id, event.target.value as TicketStatus),
+                    void runAction(
+                      () => changeTicketStatus(token, id, event.target.value as TicketStatus),
+                      'Status atualizado.',
                     )
                   }
                   disabled={isSubmitting}
@@ -248,8 +291,9 @@ export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false 
                     value={ticket.priority}
                     onChange={(event) =>
                       token &&
-                      void runAction(() =>
-                        changeTicketPriority(token, id, event.target.value as TicketPriority),
+                      void runAction(
+                        () => changeTicketPriority(token, id, event.target.value as TicketPriority),
+                        'Prioridade atualizada.',
                       )
                     }
                     disabled={isSubmitting}
@@ -261,34 +305,53 @@ export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false 
                   </select>
                 </label>
               ) : null}
-              {canManagePriority ? (
+              {canReassign ? (
                 <>
                   <label htmlFor="ticket-assignee">
-                    ID do responsável
-                    <input
+                    Responsável
+                    <select
                       id="ticket-assignee"
                       value={assigneeId}
                       onChange={(event) => setAssigneeId(event.target.value)}
-                      placeholder="UUID do agente"
                       disabled={isSubmitting}
-                    />
+                    >
+                      <option value="">Sem responsável</option>
+                      {assignees.map((assignee) => (
+                        <option key={assignee.id} value={assignee.id}>
+                          {assignee.name}
+                        </option>
+                      ))}
+                      {/* O responsavel atual pode nao estar na lista (ex.: inativo). */}
+                      {ticket.assignee && !assignees.some((a) => a.id === ticket.assignee?.id) ? (
+                        <option value={ticket.assignee.id}>{ticket.assignee.name}</option>
+                      ) : null}
+                    </select>
                   </label>
                   <button
                     type="button"
-                    disabled={isSubmitting}
+                    className="primary-button"
+                    disabled={isSubmitting || assigneeId === (ticket.assignee?.id ?? '')}
                     onClick={() =>
-                      token && void runAction(() => assignTicket(token, id, assigneeId || null))
+                      token &&
+                      void runAction(
+                        () => assignTicket(token, id, assigneeId || null),
+                        'Responsável atualizado.',
+                      )
                     }
                   >
-                    Atualizar responsável
+                    Salvar responsável
                   </button>
                 </>
               ) : null}
               {user.role === 'agent' && (!ticket.assignee || ticket.assignee.id === user.id) ? (
                 <button
                   type="button"
-                  disabled={isSubmitting}
-                  onClick={() => token && void runAction(() => assignTicket(token, id, user.id))}
+                  className="secondary-button"
+                  disabled={isSubmitting || ticket.assignee?.id === user.id}
+                  onClick={() =>
+                    token &&
+                    void runAction(() => assignTicket(token, id, user.id), 'Chamado assumido.')
+                  }
                 >
                   Assumir para mim
                 </button>
@@ -306,7 +369,9 @@ export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false 
                   <li key={comment.id}>
                     <strong>{comment.author.name}</strong>
                     <span
-                      className={comment.visibility === 'internal' ? 'badge badge--neutral' : ''}
+                      className={
+                        comment.visibility === 'internal' ? 'badge badge--internal' : 'badge'
+                      }
                     >
                       {formatCommentVisibility(comment.visibility)}
                     </span>
@@ -316,16 +381,25 @@ export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false 
               </ul>
             )}
             {isMutable ? (
-              <form className="login-form" onSubmit={submitComment}>
+              <form className="login-form" onSubmit={submitComment} noValidate>
                 <label htmlFor="comment-body">Novo comentário</label>
                 <textarea
                   id="comment-body"
                   value={commentBody}
-                  onChange={(event) => setCommentBody(event.target.value)}
+                  onChange={(event) => {
+                    setCommentBody(event.target.value);
+                    setCommentError('');
+                  }}
                   rows={4}
-                  required
                   disabled={isSubmitting}
+                  aria-invalid={!!commentError}
+                  aria-describedby={commentError ? 'comment-error' : undefined}
                 />
+                {commentError ? (
+                  <p className="form-error" id="comment-error" role="alert">
+                    {commentError}
+                  </p>
+                ) : null}
                 {isTeam ? (
                   <label htmlFor="comment-visibility">
                     Visibilidade

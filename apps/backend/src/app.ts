@@ -1,8 +1,7 @@
-import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
+import express from 'express';
 
+import { authRateLimiter, corsOptions, securityHeaders } from './middleware/security.middleware.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found.js';
 import { authRouter } from './routes/auth.routes.js';
@@ -14,39 +13,29 @@ import { usersRouter } from './routes/users.routes.js';
 import { notificationsRouter } from './routes/notifications.routes.js';
 import { slaPoliciesRouter } from './routes/sla-policies.routes.js';
 
-const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? 'http://localhost:5173')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
 export const app = express();
 
+// Atras de proxy (Render/Vercel) confiamos em 1 hop para que o IP real do
+// cliente seja usado no rate limiting. Em teste nao ha proxy.
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Security headers
-app.use(helmet());
+app.use(securityHeaders);
 
 // CORS
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  }),
-);
+app.use(cors(corsOptions));
 
-// Rate limiting on auth endpoints
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.VITEST ? 10000 : 10, // generous in tests
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: () => Boolean(process.env.VITEST),
-  message: { error: { message: 'Muitas tentativas. Tente novamente mais tarde.' } },
-});
+// Rate limiting on auth endpoints.
+// Em testes o limiter e desativado para nao interferir nas demais suites; o
+// comportamento real e provado em security-middleware.test.ts, que instancia
+// o limiter ativo.
+const applyAuthLimiter = process.env.VITEST ? [] : [authRateLimiter];
 
 app.use(express.json());
 app.use(healthRouter);
-app.use('/api/v1/auth', authLimiter, authRouter);
+app.use('/api/v1/auth', ...applyAuthLimiter, authRouter);
 app.use('/api/v1/categories', categoriesRouter);
 app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/tickets', ticketsRouter);

@@ -2,36 +2,38 @@ import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import type { SlaPolicy, TicketPriority } from '@supportflow/shared';
 
 import { useAuth } from '../auth/AuthContext';
+import { useToast } from '../components/Toast';
 import { ApiError, createSlaPolicy, listSlaPolicies, updateSlaPolicy } from '../services/api';
 
 const priorities: TicketPriority[] = ['critical', 'high', 'medium', 'low'];
 
 export function SlaPoliciesPage() {
   const { token } = useAuth();
+  const { showToast } = useToast();
   const [policies, setPolicies] = useState<SlaPolicy[]>([]);
   const [message, setMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [priority, setPriority] = useState<TicketPriority>('critical');
   const [firstResponseMinutes, setFirstResponseMinutes] = useState('60');
   const [resolutionMinutes, setResolutionMinutes] = useState('240');
+  const [fieldErrors, setFieldErrors] = useState<{ first?: string; resolution?: string }>({});
 
   const load = useCallback(async () => {
     if (!token) return;
     setIsLoading(true);
     setMessage('');
-    setSuccessMessage('');
     try {
       setPolicies(await listSlaPolicies(token));
     } catch (error) {
-      setMessage(
-        error instanceof ApiError ? error.message : 'Não foi possível carregar as políticas.',
-      );
+      const msg =
+        error instanceof ApiError ? error.message : 'Não foi possível carregar as políticas.';
+      setMessage(msg);
+      showToast('error', msg);
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, [showToast, token]);
 
   useEffect(() => {
     void load();
@@ -48,9 +50,26 @@ export function SlaPoliciesPage() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!token) return;
+    if (isSubmitting) return; // protecao contra duplo envio
+
+    // Validacao client-side. O backend continua validando (defesa em camadas).
+    const errors: { first?: string; resolution?: string } = {};
+    const first = Number(firstResponseMinutes);
+    const resolution = Number(resolutionMinutes);
+    if (!Number.isInteger(first) || first < 1) {
+      errors.first = 'Informe um número inteiro maior que zero.';
+    }
+    if (!Number.isInteger(resolution) || resolution < 1) {
+      errors.resolution = 'Informe um número inteiro maior que zero.';
+    }
+    if (first > 0 && resolution > 0 && resolution < first) {
+      errors.resolution = 'A resolução deve ser maior ou igual à primeira resposta.';
+    }
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
     setIsSubmitting(true);
     setMessage('');
-    setSuccessMessage('');
     try {
       const existing = policies.find((policy) => policy.priority === priority);
       const durations = {
@@ -63,9 +82,11 @@ export function SlaPoliciesPage() {
         await createSlaPolicy(token, { priority, ...durations });
       }
       await load();
-      setSuccessMessage('Política de SLA salva com sucesso!');
+      showToast('success', 'Política de SLA salva com sucesso.');
     } catch (error) {
-      setMessage(error instanceof ApiError ? error.message : 'Não foi possível criar a política.');
+      const msg = error instanceof ApiError ? error.message : 'Não foi possível criar a política.';
+      setMessage(msg);
+      showToast('error', msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -86,17 +107,18 @@ export function SlaPoliciesPage() {
     if (!token) return;
     setIsSubmitting(true);
     setMessage('');
-    setSuccessMessage('');
     try {
       await updateSlaPolicy(token, policy.id, { isActive: !policy.isActive });
       await load();
-      setSuccessMessage(
-        'Política de SLA ' + (policy.isActive ? 'desativada' : 'ativada') + ' com sucesso!',
+      showToast(
+        'success',
+        'Política de SLA ' + (policy.isActive ? 'desativada' : 'ativada') + ' com sucesso.',
       );
     } catch (error) {
-      setMessage(
-        error instanceof ApiError ? error.message : 'Não foi possível atualizar a política.',
-      );
+      const msg =
+        error instanceof ApiError ? error.message : 'Não foi possível atualizar a política.';
+      setMessage(msg);
+      showToast('error', msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -121,17 +143,13 @@ export function SlaPoliciesPage() {
           </button>
         </div>
       ) : null}
-      {successMessage && (
-        <p className="form-success" role="alert">
-          {successMessage}
-        </p>
-      )}
-      <form className="policy-form" onSubmit={submit}>
+      <form className="policy-form" onSubmit={submit} noValidate>
         <label>
           Prioridade
           <select
             value={priority}
             onChange={(event) => selectPriority(event.target.value as TicketPriority)}
+            disabled={isSubmitting}
           >
             {priorities.map((item) => (
               <option key={item} value={item}>
@@ -146,27 +164,58 @@ export function SlaPoliciesPage() {
             type="number"
             min="1"
             value={firstResponseMinutes}
-            onChange={(event) => setFirstResponseMinutes(event.target.value)}
+            onChange={(event) => {
+              setFirstResponseMinutes(event.target.value);
+              setFieldErrors((current) => ({ ...current, first: undefined }));
+            }}
             required
+            disabled={isSubmitting}
+            aria-invalid={!!fieldErrors.first}
+            aria-describedby={fieldErrors.first ? 'sla-first-error' : undefined}
           />
         </label>
+        {fieldErrors.first ? (
+          <p className="form-error" id="sla-first-error" role="alert">
+            {fieldErrors.first}
+          </p>
+        ) : null}
         <label>
           Resolução (min)
           <input
             type="number"
             min="1"
             value={resolutionMinutes}
-            onChange={(event) => setResolutionMinutes(event.target.value)}
+            onChange={(event) => {
+              setResolutionMinutes(event.target.value);
+              setFieldErrors((current) => ({ ...current, resolution: undefined }));
+            }}
             required
+            disabled={isSubmitting}
+            aria-invalid={!!fieldErrors.resolution}
+            aria-describedby={fieldErrors.resolution ? 'sla-resolution-error' : undefined}
           />
         </label>
+        {fieldErrors.resolution ? (
+          <p className="form-error" id="sla-resolution-error" role="alert">
+            {fieldErrors.resolution}
+          </p>
+        ) : null}
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Salvando…' : selectedPolicy ? 'Atualizar política' : 'Criar política'}
         </button>
       </form>
-      {isLoading ? <p role="status">Carregando políticas…</p> : null}
+      {isLoading ? (
+        <div className="skeleton-stack" aria-hidden="true">
+          <div className="skeleton skeleton--block" />
+        </div>
+      ) : null}
       {!isLoading && policies.length === 0 ? (
-        <p className="empty-state">Nenhuma política cadastrada.</p>
+        <div className="empty-state-box">
+          <h3>Nenhuma política cadastrada</h3>
+          <p className="supporting-text">
+            Defina os prazos de primeira resposta e resolução por prioridade no formulário acima.
+          </p>
+        </div>
       ) : null}
       <ul className="policy-list">
         {policies.map((policy) => (
