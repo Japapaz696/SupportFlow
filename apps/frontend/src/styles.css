@@ -247,12 +247,20 @@ h2 {
 }
 
 @keyframes toast-in {
-  from { opacity: 0; transform: translateY(1rem); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .toast { animation: none; }
+  .toast {
+    animation: none;
+  }
 }
 
 /* Error boundary */
@@ -266,7 +274,12 @@ h2 {
 
 /* Skeleton loading */
 .skeleton {
-  background: linear-gradient(90deg, var(--color-surface-alt) 25%, var(--color-border) 50%, var(--color-surface-alt) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-alt) 25%,
+    var(--color-border) 50%,
+    var(--color-surface-alt) 75%
+  );
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.5s infinite;
   border-radius: var(--radius-sm);
@@ -274,12 +287,18 @@ h2 {
 }
 
 @keyframes skeleton-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .skeleton { animation: none; }
+  .skeleton {
+    animation: none;
+  }
 }
 
 /* Empty state */
@@ -344,7 +363,9 @@ h2 {
   font-size: 0.9rem;
   text-align: left;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
   min-height: auto;
 }
 
@@ -427,9 +448,15 @@ h2 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar { transition: none; }
-  .toast { animation: none; }
-  .skeleton { animation: none; }
+  .sidebar {
+    transition: none;
+  }
+  .toast {
+    animation: none;
+  }
+  .skeleton {
+    animation: none;
+  }
 }
 
 .success-message,

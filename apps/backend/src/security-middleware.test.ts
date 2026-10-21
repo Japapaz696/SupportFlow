@@ -6,7 +6,12 @@ import rateLimit from 'express-rate-limit';
 describe('rate limiting (middleware ativo)', () => {
   it('permite requisições dentro do limite', async () => {
     const app = express();
-    const limiter = rateLimit({ windowMs: 60000, max: 5, standardHeaders: true, legacyHeaders: false });
+    const limiter = rateLimit({
+      windowMs: 60000,
+      max: 5,
+      standardHeaders: true,
+      legacyHeaders: false,
+    });
     app.use(limiter);
     app.get('/test', (_req, res) => res.json({ ok: true }));
 
@@ -17,7 +22,12 @@ describe('rate limiting (middleware ativo)', () => {
 
   it('retorna 429 após exceder o limite', async () => {
     const app = express();
-    const limiter = rateLimit({ windowMs: 60000, max: 2, standardHeaders: true, legacyHeaders: false });
+    const limiter = rateLimit({
+      windowMs: 60000,
+      max: 2,
+      standardHeaders: true,
+      legacyHeaders: false,
+    });
     app.use(limiter);
     app.get('/test', (_req, res) => res.json({ ok: true }));
 
@@ -29,7 +39,12 @@ describe('rate limiting (middleware ativo)', () => {
 
   it('inclui header Retry-After no 429', async () => {
     const app = express();
-    const limiter = rateLimit({ windowMs: 60000, max: 1, standardHeaders: true, legacyHeaders: false });
+    const limiter = rateLimit({
+      windowMs: 60000,
+      max: 1,
+      standardHeaders: true,
+      legacyHeaders: false,
+    });
     app.use(limiter);
     app.get('/test', (_req, res) => res.json({ ok: true }));
 
@@ -67,7 +82,13 @@ describe('CORS (configuração)', () => {
   it('preflight OPTIONS retorna headers corretos', async () => {
     const cors = (await import('cors')).default;
     const app = express();
-    app.use(cors({ origin: 'http://localhost:5173', credentials: true, methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'] }));
+    app.use(
+      cors({
+        origin: 'http://localhost:5173',
+        credentials: true,
+        methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+      }),
+    );
     app.get('/test', (_req, res) => res.json({ ok: true }));
 
     const res = await request(app)

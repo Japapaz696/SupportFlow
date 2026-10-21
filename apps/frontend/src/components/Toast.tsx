@@ -38,11 +38,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <div className="toast-container" aria-live="polite" aria-atomic="true">
         {toasts.map((toast) => (
-          <div
-            key={toast.id}
-            className={`toast toast-${toast.type}`}
-            role="status"
-          >
+          <div key={toast.id} className={`toast toast-${toast.type}`} role="status">
             <span>{toast.message}</span>
             <button
               type="button"

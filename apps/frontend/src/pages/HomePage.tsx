@@ -107,7 +107,12 @@ export function HomePage() {
           <p className="supporting-text" style={{ fontSize: '0.75rem', marginBottom: '0.75rem' }}>
             {formatUserRole(user.role)}
           </p>
-          <button className="secondary-button" type="button" onClick={() => void logout()} style={{ width: '100%' }}>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => void logout()}
+            style={{ width: '100%' }}
+          >
             Sair
           </button>
         </div>
@@ -117,17 +122,25 @@ export function HomePage() {
           <div>
             <p className="eyebrow">SupportFlow</p>
             <h1 id="page-title">
-              {activeView === 'dashboard' ? 'Dashboard' :
-               activeView === 'tickets' ? 'Chamados' :
-               activeView === 'notifications' ? 'Notificações' :
-               activeView === 'sla-policies' ? 'Políticas SLA' :
-               activeView === 'categories' ? 'Categorias' : 'SupportFlow'}
+              {activeView === 'dashboard'
+                ? 'Dashboard'
+                : activeView === 'tickets'
+                  ? 'Chamados'
+                  : activeView === 'notifications'
+                    ? 'Notificações'
+                    : activeView === 'sla-policies'
+                      ? 'Políticas SLA'
+                      : activeView === 'categories'
+                        ? 'Categorias'
+                        : 'SupportFlow'}
             </h1>
           </div>
           <NotificationBell onOpen={() => navigate('notifications')} />
         </div>
         {activeView === 'dashboard' ? <DashboardPage onOpenTicket={openTickets} /> : null}
-        {activeView === 'tickets' ? <TicketsPage initialSelectedTicketId={selectedTicketId} /> : null}
+        {activeView === 'tickets' ? (
+          <TicketsPage initialSelectedTicketId={selectedTicketId} />
+        ) : null}
         {activeView === 'notifications' ? <NotificationsPanel onOpenTicket={openTickets} /> : null}
         {activeView === 'sla-policies' && canManageSettings ? <SlaPoliciesPage /> : null}
         {activeView === 'categories' && canManageSettings ? <CategoriesAdminPage /> : null}
