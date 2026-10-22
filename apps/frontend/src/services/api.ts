@@ -24,6 +24,7 @@ export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    public readonly code?: string,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -48,9 +49,46 @@ export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): voi
 
 type ErrorResponse = {
   error?: {
+    code?: string;
     message?: string;
   };
 };
+
+/**
+ * Mensagens de erro em portugues.
+ *
+ * A API responde com um codigo estavel (INVALID_CREDENTIALS, FORBIDDEN, ...)
+ * e uma mensagem em ingles. A interface fala portugues, entao traduzimos pelo
+ * codigo; quando o codigo e desconhecido, usamos a mensagem do servidor.
+ *
+ * O codigo e o contrato: a mensagem do servidor pode mudar sem quebrar a
+ * interface.
+ */
+const mensagensPorCodigo: Record<string, string> = {
+  INVALID_CREDENTIALS: 'E-mail ou senha inválidos.',
+  UNAUTHENTICATED: 'Sessão expirada. Entre novamente.',
+  FORBIDDEN: 'Você não tem permissão para executar esta ação.',
+  VALIDATION_ERROR: 'Verifique os campos informados e tente novamente.',
+  INVALID_ASSIGNEE: 'O responsável precisa ser um agente ativo.',
+  TICKET_NOT_FOUND: 'Chamado não encontrado.',
+  TICKET_ALREADY_ASSIGNED: 'Este chamado já tem responsável.',
+  TICKET_NOT_MUTABLE: 'Este chamado não aceita mais alterações.',
+  TICKET_NOT_COMMENTABLE: 'Este chamado não aceita mais comentários.',
+  CATEGORY_NOT_FOUND: 'Categoria não encontrada.',
+  CATEGORY_ALREADY_EXISTS: 'Já existe uma categoria com esse nome.',
+  CATEGORY_NOT_AVAILABLE: 'Esta categoria está indisponível.',
+  EMAIL_ALREADY_IN_USE: 'Este e-mail já está em uso.',
+  USER_NOT_FOUND: 'Usuário não encontrado.',
+  NOTIFICATION_NOT_FOUND: 'Notificação não encontrada.',
+  SLA_POLICY_NOT_FOUND: 'Política de SLA não encontrada.',
+  RATE_LIMITED: 'Muitas tentativas. Aguarde alguns instantes e tente de novo.',
+};
+
+function mensagemDeErro(status: number, code: string | undefined, fallback: string): string {
+  if (code && mensagensPorCodigo[code]) return mensagensPorCodigo[code];
+  if (status === 429) return mensagensPorCodigo.RATE_LIMITED;
+  return fallback;
+}
 
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
   const headers = new Headers(options.headers);
@@ -71,10 +109,12 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
 
   if (!response.ok) {
     let message = 'Não foi possível concluir a solicitação.';
+    let code: string | undefined;
 
     try {
       const body = (await response.json()) as ErrorResponse;
-      message = body.error?.message ?? message;
+      code = body.error?.code;
+      message = mensagemDeErro(response.status, code, body.error?.message ?? message);
     } catch {
       // Keep the generic message for non-JSON errors.
     }
@@ -85,7 +125,7 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
       unauthorizedHandler?.();
     }
 
-    throw new ApiError(response.status, message);
+    throw new ApiError(response.status, message, code);
   }
 
   if (response.status === 204) {

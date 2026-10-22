@@ -15,6 +15,9 @@ export function HomePage() {
   const [view, setView] = useState<View>('dashboard');
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Contador de nao lidas compartilhado entre o sino e o painel: sem uma
+  // fonte unica, marcar uma notificacao como lida nao atualizava o badge.
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   if (!user) return null;
 
@@ -135,13 +138,19 @@ export function HomePage() {
                         : 'SupportFlow'}
             </h1>
           </div>
-          <NotificationBell onOpen={() => navigate('notifications')} />
+          <NotificationBell
+            onOpen={() => navigate('notifications')}
+            unread={unreadNotifications}
+            onUnreadChange={setUnreadNotifications}
+          />
         </div>
         {activeView === 'dashboard' ? <DashboardPage onOpenTicket={openTickets} /> : null}
         {activeView === 'tickets' ? (
           <TicketsPage initialSelectedTicketId={selectedTicketId} />
         ) : null}
-        {activeView === 'notifications' ? <NotificationsPanel onOpenTicket={openTickets} /> : null}
+        {activeView === 'notifications' ? (
+          <NotificationsPanel onOpenTicket={openTickets} onUnreadChange={setUnreadNotifications} />
+        ) : null}
         {activeView === 'sla-policies' && canManageSettings ? <SlaPoliciesPage /> : null}
         {activeView === 'categories' && canManageSettings ? <CategoriesAdminPage /> : null}
       </main>

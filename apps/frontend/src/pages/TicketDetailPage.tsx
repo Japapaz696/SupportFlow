@@ -33,7 +33,6 @@ type Props = {
   id: string;
   onBack: () => void;
   onChanged: () => void;
-  createdNotice?: boolean;
 };
 
 function formatSlaClock(label: string, clock: TicketDetail['sla']['firstResponse']) {
@@ -77,7 +76,7 @@ function TicketDetailSkeleton() {
   );
 }
 
-export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false }: Props) {
+export function TicketDetailPage({ id, onBack, onChanged }: Props) {
   const { token, user } = useAuth();
   const { showToast } = useToast();
   const [ticket, setTicket] = useState<TicketDetail | null>(null);
@@ -112,9 +111,8 @@ export function TicketDetailPage({ id, onBack, onChanged, createdNotice = false 
 
   useEffect(() => {
     setTicket(null);
-    if (createdNotice) showToast('success', 'Chamado criado com sucesso.');
     void loadTicket();
-  }, [createdNotice, loadTicket, showToast]);
+  }, [loadTicket]);
 
   // Carrega a lista de equipe para o seletor de responsavel. Apenas gestor e
   // admin podem reatribuir (a API bloqueia agente com 403), entao so eles

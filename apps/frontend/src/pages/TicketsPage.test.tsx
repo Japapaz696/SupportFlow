@@ -8,8 +8,10 @@ import { AuthProvider, useAuth } from '../auth/AuthContext';
 import { ToastProvider } from '../components/Toast';
 import {
   ApiError,
+  createTicket,
   getTicket,
   listAssignableUsers,
+  listCategories,
   listTickets,
   loginRequest,
   meRequest,
@@ -33,6 +35,8 @@ vi.mock('../services/api', async (importOriginal) => {
     listTickets: vi.fn(),
     getTicket: vi.fn(),
     listAssignableUsers: vi.fn(),
+    listCategories: vi.fn(),
+    createTicket: vi.fn(),
   };
 });
 
@@ -242,5 +246,36 @@ describe('TicketsPage: listagem integrada', () => {
     expect(
       await screen.findByRole('heading', { name: 'Impressora sem resposta' }),
     ).toBeInTheDocument();
+  });
+
+  it('exibe um unico toast de sucesso ao criar o chamado', async () => {
+    vi.mocked(listTickets).mockResolvedValue({ items: [], page: 1, pageSize: 10, total: 0 });
+    vi.mocked(listCategories).mockResolvedValue([
+      {
+        id: 'c1',
+        name: 'Hardware',
+        description: null,
+        isActive: true,
+        defaultPriority: 'medium',
+      },
+    ]);
+    vi.mocked(createTicket).mockResolvedValue(DETALHE);
+
+    renderizar();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Novo chamado' }));
+    await userEvent.type(await screen.findByLabelText('Título *'), 'Impressora quebrada');
+    await userEvent.type(
+      screen.getByLabelText('Descrição *'),
+      'Nao imprime desde segunda-feira de manha.',
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Criar chamado' }));
+
+    // A mensagem de sucesso tem uma unica fonte (CreateTicketForm). Exibir a
+    // mesma confirmacao duas vezes ruidova o usuario sem acrescentar informacao.
+    await waitFor(() => {
+      expect(screen.getAllByText('Chamado criado com sucesso.')).toHaveLength(1);
+    });
+    expect(vi.mocked(createTicket)).toHaveBeenCalledTimes(1);
   });
 });

@@ -13,9 +13,14 @@ import {
 
 type Props = {
   onOpenTicket: (id: string) => void;
+  /**
+   * Mantem o contador do sino (NotificationBell) em dia. Sem isso, marcar uma
+   * notificacao como lida deixava o badge exibindo o total antigo.
+   */
+  onUnreadChange: (count: number) => void;
 };
 
-export function NotificationsPanel({ onOpenTicket }: Props) {
+export function NotificationsPanel({ onOpenTicket, onUnreadChange }: Props) {
   const { token } = useAuth();
   const { showToast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -35,6 +40,7 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
       ]);
       setNotifications(list.items);
       setUnread(count);
+      onUnreadChange(count);
     } catch (error) {
       const msg =
         error instanceof ApiError ? error.message : 'Não foi possível carregar as notificações.';
@@ -43,7 +49,7 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
     } finally {
       setIsLoading(false);
     }
-  }, [showToast, token]);
+  }, [onUnreadChange, showToast, token]);
 
   useEffect(() => {
     void load();
@@ -53,7 +59,9 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
     if (!token || notification.readAt) return notification;
     const updated = await readNotification(token, notification.id);
     setNotifications((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-    setUnread((current) => Math.max(0, current - 1));
+    const remaining = Math.max(0, unread - 1);
+    setUnread(remaining);
+    onUnreadChange(remaining);
     return updated;
   }
 
@@ -104,6 +112,7 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
         })),
       );
       setUnread(0);
+      onUnreadChange(0);
       showToast('success', 'Todas as notificações foram marcadas como lidas.');
     } catch (error) {
       const msg =
@@ -199,16 +208,23 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
   );
 }
 
-export function NotificationBell({ onOpen }: { onOpen: () => void }) {
+export function NotificationBell({
+  onOpen,
+  unread,
+  onUnreadChange,
+}: {
+  onOpen: () => void;
+  unread: number;
+  onUnreadChange: (count: number) => void;
+}) {
   const { token } = useAuth();
-  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     if (!token) return;
     getUnreadNotificationCount(token)
-      .then(setUnread)
-      .catch(() => setUnread(0));
-  }, [token]);
+      .then(onUnreadChange)
+      .catch(() => onUnreadChange(0));
+  }, [onUnreadChange, token]);
 
   return (
     <button

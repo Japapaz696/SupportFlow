@@ -92,9 +92,10 @@ export function TicketsPage({ initialSelectedTicketId = null }: Props) {
         token={token}
         onCancel={() => setShowCreate(false)}
         onCreated={(id) => {
+          // O toast de sucesso fica no CreateTicketForm (única fonte). Repetir
+          // aqui exibia a mesma mensagem duas vezes ao criar o chamado.
           setShowCreate(false);
           setSelectedTicketId(id);
-          showToast('success', 'Chamado criado com sucesso.');
         }}
       />
     );
