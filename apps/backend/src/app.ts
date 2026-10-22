@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 
-import { authRateLimiter, corsOptions, securityHeaders } from './middleware/security.middleware.js';
+import { corsOptions, securityHeaders } from './middleware/security.middleware.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found.js';
 import { authRouter } from './routes/auth.routes.js';
@@ -27,15 +27,14 @@ app.use(securityHeaders);
 // CORS
 app.use(cors(corsOptions));
 
-// Rate limiting on auth endpoints.
-// Em testes o limiter e desativado para nao interferir nas demais suites; o
-// comportamento real e provado em security-middleware.test.ts, que instancia
-// o limiter ativo.
-const applyAuthLimiter = process.env.VITEST ? [] : [authRateLimiter];
+// Rate limiting: o limiter e aplicado na rota de login (unico endpoint que
+// confere credenciais), dentro de auth.routes.ts. Em testes ele e desativado
+// para nao interferir nas demais suites; o comportamento real e provado em
+// security-middleware.test.ts, que instancia o limiter ativo.
 
 app.use(express.json());
 app.use(healthRouter);
-app.use('/api/v1/auth', ...applyAuthLimiter, authRouter);
+app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/categories', categoriesRouter);
 app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/tickets', ticketsRouter);

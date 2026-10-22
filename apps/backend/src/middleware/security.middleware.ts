@@ -1,4 +1,5 @@
 import cors from 'cors';
+import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import rateLimit, { type Options as RateLimitOptions } from 'express-rate-limit';
 
@@ -76,5 +77,15 @@ export function createAuthRateLimiter(overrides: Partial<RateLimitOptions> = {})
   });
 }
 
-/** Limiter de producao usado pelas rotas de auth. */
-export const authRateLimiter = createAuthRateLimiter();
+/**
+ * Limitador aplicado na rota de login.
+ *
+ * Em testes o limiter fica desligado para nao interferir nas demais suites; o
+ * comportamento real e provado em security-middleware.test.ts, que instancia
+ * o limiter ativo. `SUPPORTFLOW_RATE_LIMIT_ACTIVE=1` religa o limiter mesmo em
+ * testes, para a suite de integracao conseguir provar o escopo da protecao.
+ */
+export const authRateLimiter =
+  !process.env.VITEST || process.env.SUPPORTFLOW_RATE_LIMIT_ACTIVE === '1'
+    ? createAuthRateLimiter()
+    : (_req: Request, _res: Response, next: NextFunction) => next();

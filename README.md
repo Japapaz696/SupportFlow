@@ -45,7 +45,7 @@ npm run dev:frontend
 - diagnóstico técnico por chamado (M7);
 - busca no servidor por código, título ou descrição;
 - reatribuição de chamado para outro agente ativo;
-- hardening do backend: `helmet`, CORS por allowlist e limite de tentativas de login;
+- hardening do backend: `helmet`, CORS por allowlist e limite de tentativas de login (10 por IP a cada 15 min, aplicado apenas à rota de login);
 - interface com navegação por seções, notificações lidas/não lidas e retorno visual de cada ação.
 
 Solicitantes acessam apenas seus próprios chamados e nunca recebem comentários internos nem diagnóstico técnico. Agentes podem assumir chamados para si e atuar no fluxo. Gestores e administradores podem atribuir agentes, alterar prioridade e cancelar chamados.
@@ -99,18 +99,20 @@ sanitizados antes do envio.
 
 ## Validação
 
-**195 testes** em três suítes:
+**196 testes** em três suítes:
 
 | Suíte             | Testes | O que cobre                                                                                        | Precisa de banco |
 | ----------------- | ------ | -------------------------------------------------------------------------------------------------- | ---------------- |
 | `packages/shared` | 20     | contrato das listas compartilhadas (papéis, estados, prioridades, SLA, notificações, métodos HTTP) | não              |
-| `apps/backend`    | 130    | integração completa: auth, RBAC, tickets, SLA, dashboard, notificações, diagnóstico e segurança    | **sim**          |
+| `apps/backend`    | 131    | integração completa: auth, RBAC, tickets, SLA, dashboard, notificações, diagnóstico e segurança    | **sim**          |
 | `apps/frontend`   | 45     | camada de API, contexto de autenticação, toasts, listagem, detalhe e painel de notificações        | não              |
 
 A suíte de segurança do backend cobre helmet, CORS (origem permitida, origem bloqueada e preflight) e o
-limite de tentativas de login com o middleware ativo. O fluxo completo com navegador real, banco
-PostgreSQL local e os quatro perfis está registrado em `review/e2e-v2/` (capturas de tela, evidências de
-CORS, de rate limiting e de 403 por perfil, além da auditoria de acessibilidade).
+limite de tentativas de login com o middleware ativo — inclusive o **escopo** da proteção, que se aplica
+apenas a `POST /auth/login` (10 tentativas por IP a cada 15 minutos); `/auth/me` e `/auth/logout` exigem
+token e não consomem a cota. O fluxo completo com navegador real, banco PostgreSQL local e os quatro
+perfis está registrado em `review/e2e-v2/` (capturas de tela, evidências de CORS, de rate limiting e de
+403 por perfil, além da auditoria de acessibilidade).
 
 Os testes de integração nunca escrevem nas tabelas de desenvolvimento: usam `TEST_DATABASE_URL`
 quando definida ou o schema isolado `supportflow_test`. O banco/schema de teste deve existir e receber
