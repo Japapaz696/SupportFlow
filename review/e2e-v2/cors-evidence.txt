@@ -1,0 +1,38 @@
+SupportFlow V2 - evidencia de CORS (backend real, porta 3000)
+Data: 21/10/2026
+
+=== 1) ORIGEM PERMITIDA (http://localhost:5173) - GET /health ===
+HTTP/1.1 200 OK
+Content-Security-Policy: default-src 'none';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'none';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-site
+Referrer-Policy: no-referrer
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+Access-Control-Allow-Origin: http://localhost:5173
+Vary: Origin
+
+=== 2) ORIGEM BLOQUEADA (http://origem-maliciosa.invalid) - GET /health ===
+HTTP/1.1 200 OK
+Vary: Origin
+   (sem Access-Control-Allow-Origin => o navegador bloqueia a resposta)
+
+=== 3) PREFLIGHT OPTIONS - origem permitida, metodo PATCH, header Authorization ===
+HTTP/1.1 204 No Content
+Access-Control-Allow-Origin: http://localhost:5173
+Vary: Origin
+Access-Control-Allow-Methods: GET,POST,PATCH,PUT,DELETE
+Access-Control-Allow-Headers: Content-Type,Authorization
+
+=== 4) PREFLIGHT OPTIONS - origem bloqueada ===
+HTTP/1.1 204 No Content
+Vary: Origin
+Access-Control-Allow-Methods: GET,POST,PATCH,PUT,DELETE
+Access-Control-Allow-Headers: Content-Type,Authorization
+   (204 sem Access-Control-Allow-Origin => preflight reprovado pelo navegador)
+
+=== 5) Access-Control-Allow-Credentials (Bearer JWT nao usa cookie) ===
+   presente na origem permitida  : False
+   presente na origem bloqueada : False
+   esperado: ausente (credenciais=false no middleware cors)
