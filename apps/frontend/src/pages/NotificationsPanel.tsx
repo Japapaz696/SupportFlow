@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Notification } from '@supportflow/shared';
 
 import { useAuth } from '../auth/AuthContext';
+import { useToast } from '../components/Toast';
 import {
   ApiError,
   getUnreadNotificationCount,
@@ -12,14 +13,19 @@ import {
 
 type Props = {
   onOpenTicket: (id: string) => void;
+  /**
+   * Mantem o contador do sino (NotificationBell) em dia. Sem isso, marcar uma
+   * notificacao como lida deixava o badge exibindo o total antigo.
+   */
+  onUnreadChange: (count: number) => void;
 };
 
-export function NotificationsPanel({ onOpenTicket }: Props) {
+export function NotificationsPanel({ onOpenTicket, onUnreadChange }: Props) {
   const { token } = useAuth();
+  const { showToast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unread, setUnread] = useState(0);
   const [message, setMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -27,7 +33,6 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
     if (!token) return;
     setIsLoading(true);
     setMessage('');
-    setSuccessMessage('');
     try {
       const [list, count] = await Promise.all([
         listNotifications(token, { page: 1, pageSize: 20 }),
@@ -35,14 +40,16 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
       ]);
       setNotifications(list.items);
       setUnread(count);
+      onUnreadChange(count);
     } catch (error) {
-      setMessage(
-        error instanceof ApiError ? error.message : 'Não foi possível carregar as notificações.',
-      );
+      const msg =
+        error instanceof ApiError ? error.message : 'Não foi possível carregar as notificações.';
+      setMessage(msg);
+      showToast('error', msg);
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, [onUnreadChange, showToast, token]);
 
   useEffect(() => {
     void load();
@@ -52,21 +59,23 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
     if (!token || notification.readAt) return notification;
     const updated = await readNotification(token, notification.id);
     setNotifications((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-    setUnread((current) => Math.max(0, current - 1));
+    const remaining = Math.max(0, unread - 1);
+    setUnread(remaining);
+    onUnreadChange(remaining);
     return updated;
   }
 
   async function markNotificationRead(notification: Notification) {
     setIsSubmitting(true);
     setMessage('');
-    setSuccessMessage('');
     try {
       await markRead(notification);
-      setSuccessMessage('Notificação marcada como lida.');
+      showToast('success', 'Notificação marcada como lida.');
     } catch (error) {
-      setMessage(
-        error instanceof ApiError ? error.message : 'Não foi possível atualizar a notificação.',
-      );
+      const msg =
+        error instanceof ApiError ? error.message : 'Não foi possível atualizar a notificação.';
+      setMessage(msg);
+      showToast('error', msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -75,16 +84,16 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
   async function openNotification(notification: Notification) {
     setIsSubmitting(true);
     setMessage('');
-    setSuccessMessage('');
     try {
       const updated = await markRead(notification);
       if (updated.ticketId) {
         onOpenTicket(updated.ticketId);
       }
     } catch (error) {
-      setMessage(
-        error instanceof ApiError ? error.message : 'Não foi possível atualizar a notificação.',
-      );
+      const msg =
+        error instanceof ApiError ? error.message : 'Não foi possível atualizar a notificação.';
+      setMessage(msg);
+      showToast('error', msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -94,7 +103,6 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
     if (!token) return;
     setIsSubmitting(true);
     setMessage('');
-    setSuccessMessage('');
     try {
       await readAllNotifications(token);
       setNotifications((current) =>
@@ -104,11 +112,13 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
         })),
       );
       setUnread(0);
-      setSuccessMessage('Todas as notificações foram marcadas como lidas.');
+      onUnreadChange(0);
+      showToast('success', 'Todas as notificações foram marcadas como lidas.');
     } catch (error) {
-      setMessage(
-        error instanceof ApiError ? error.message : 'Não foi possível marcar as notificações.',
-      );
+      const msg =
+        error instanceof ApiError ? error.message : 'Não foi possível marcar as notificações.';
+      setMessage(msg);
+      showToast('error', msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -147,14 +157,19 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
           </button>
         </div>
       ) : null}
-      {successMessage && (
-        <p className="form-success" role="alert">
-          {successMessage}
-        </p>
-      )}
-      {isLoading ? <p role="status">Carregando notificações…</p> : null}
+      {isLoading ? (
+        <div className="skeleton-stack" aria-hidden="true">
+          <div className="skeleton skeleton--title" />
+          <div className="skeleton skeleton--block" />
+        </div>
+      ) : null}
       {!isLoading && notifications.length === 0 ? (
-        <p className="empty-state">Nenhuma notificação por enquanto.</p>
+        <div className="empty-state-box">
+          <h3>Nenhuma notificação</h3>
+          <p className="supporting-text">
+            Avisos sobre chamados atribuídos a você e respostas da equipe aparecem aqui.
+          </p>
+        </div>
       ) : null}
       <ul className="notification-list">
         {notifications.map((notification) => {
@@ -193,16 +208,23 @@ export function NotificationsPanel({ onOpenTicket }: Props) {
   );
 }
 
-export function NotificationBell({ onOpen }: { onOpen: () => void }) {
+export function NotificationBell({
+  onOpen,
+  unread,
+  onUnreadChange,
+}: {
+  onOpen: () => void;
+  unread: number;
+  onUnreadChange: (count: number) => void;
+}) {
   const { token } = useAuth();
-  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     if (!token) return;
     getUnreadNotificationCount(token)
-      .then(setUnread)
-      .catch(() => setUnread(0));
-  }, [token]);
+      .then(onUnreadChange)
+      .catch(() => onUnreadChange(0));
+  }, [onUnreadChange, token]);
 
   return (
     <button

@@ -1,0 +1,27 @@
+{
+  "data": "2026-10-21",
+  "total": 4,
+  "falhas": 0,
+  "verificacoes": [
+    {
+      "nome": "lista mostra estado de erro com \"Tentar novamente\"",
+      "ok": true,
+      "detalhe": "Não foi possível concluir a solicitação. |  | Tentar novamente"
+    },
+    {
+      "nome": "\"Tentar novamente\" restaura a listagem",
+      "ok": true,
+      "detalhe": "linhas=8"
+    },
+    {
+      "nome": "401 encerra a sessao e volta para a tela de login com aviso",
+      "ok": true,
+      "detalhe": "aviso='Sua sessao expirou. Entre novamente.'"
+    },
+    {
+      "nome": "apos o limite, o login mostra a mensagem traduzida de 429",
+      "ok": true,
+      "detalhe": "Muitas tentativas. Aguarde alguns instantes e tente de novo."
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+SupportFlow V2 - evidencia de rate limiting (middleware ATIVO no backend real)
+Data: 21/10/2026 | backend: node apps/backend/dist/index.js (porta 3000)
+Configuracao: windowMs=15min, max=10 por IP, standardHeaders=true (RateLimit-*), code=RATE_LIMITED
+Escopo: POST /api/v1/auth/login (unico endpoint que confere credenciais).
+
+--- A) 12 tentativas de login consecutivas (mesmo IP) ---
+tentativa  1: HTTP 200 | limit=10 remaining=9 reset=900s retry-after=s 
+tentativa  2: HTTP 200 | limit=10 remaining=8 reset=900s retry-after=s 
+tentativa  3: HTTP 200 | limit=10 remaining=7 reset=900s retry-after=s 
+tentativa  4: HTTP 200 | limit=10 remaining=6 reset=900s retry-after=s 
+tentativa  5: HTTP 200 | limit=10 remaining=5 reset=899s retry-after=s 
+tentativa  6: HTTP 200 | limit=10 remaining=4 reset=899s retry-after=s 
+tentativa  7: HTTP 200 | limit=10 remaining=3 reset=899s retry-after=s 
+tentativa  8: HTTP 200 | limit=10 remaining=2 reset=898s retry-after=s 
+tentativa  9: HTTP 200 | limit=10 remaining=1 reset=898s retry-after=s 
+tentativa 10: HTTP 200 | limit=10 remaining=0 reset=898s retry-after=s 
+tentativa 11: HTTP 429 | limit=10 remaining=0 reset=898s retry-after=898s {"error":{"code":"RATE_LIMITED","message":"Muitas tentativas. Tente novamente mais tarde."}}
+tentativa 12: HTTP 429 | limit=10 remaining=0 reset=898s retry-after=898s {"error":{"code":"RATE_LIMITED","message":"Muitas tentativas. Tente novamente mais tarde."}}
+
+--- B) /auth/me NAO consome a cota (mesmo com a cota esgotada) ---
+GET /api/v1/auth/me (com token valido, cota esgotada): HTTP 200
+10 chamadas seguidas a /api/v1/auth/me: todas HTTP 200 = True
+(o login e o /auth/me sao rotas diferentes; so o login consome a cota)
+
+--- C) IP/proxy: X-Forwarded-For fora de producao (trust proxy desligado) ---
+XFF 203.0.113.77: HTTP 429 remaining=0 (mesma cota do IP real => XFF ignorado fora de producao)
+XFF 198.51.100.9: HTTP 429 remaining=0 (mesma cota do IP real => XFF ignorado fora de producao)
+
+--- D) Recuperacao apos o fim da janela (backend reiniciado: store em memoria) ---
+login apos reinicio : HTTP 200 | limit=10 remaining=9 reset=900s
+
+--- E) Custo real de um login completo (login + /auth/me) ---
+login  1: HTTP 200 + GET /auth/me HTTP 200
+login  2: HTTP 200 + GET /auth/me HTTP 200
+login  3: HTTP 200 + GET /auth/me HTTP 200
+login  4: HTTP 200 + GET /auth/me HTTP 200
+login  5: HTTP 200 + GET /auth/me HTTP 200
+login  6: HTTP 200 + GET /auth/me HTTP 200
+login  7: HTTP 200 + GET /auth/me HTTP 200
+login  8: HTTP 200 + GET /auth/me HTTP 200
+login  9: HTTP 200 + GET /auth/me HTTP 200
+login 10: HTTP 200 + GET /auth/me HTTP 200
+logins completos aceitos na janela: 10 (o /auth/me nao consome a cota)
+login 11: HTTP 429 {"error":{"code":"RATE_LIMITED","message":"Muitas tentativas. Tente novamente mais tarde."}}
+
+Observacao: o contador vive em memoria no processo. Em producao (Render/Vercel) cada
+instancia tem a propria janela; com mais de uma instancia o limite e por instancia.
+Janela real = 15 minutos (RateLimit-Reset ~900s); o restart acima zera a janela.
+Correcao aplicada nesta rodada: o limiter cobria o roteador /auth inteiro, e cada
+login pela interface consumia 2 slots (login + /auth/me) -> apenas ~5 logins por janela.
+Agora o limiter cobre apenas POST /auth/login.

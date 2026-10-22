@@ -1,6 +1,12 @@
 import type { RequestHandler } from 'express';
 
-import { createUser, getUser, listUsers, updateUser } from '../services/users.service.js';
+import {
+  createUser,
+  getUser,
+  listAssignableUsers,
+  listUsers,
+  updateUser,
+} from '../services/users.service.js';
 import { hashPassword } from '../services/password.service.js';
 import {
   parseCreateUserPayload,
@@ -8,6 +14,14 @@ import {
   parseUpdateUserPayload,
   validateUuid,
 } from '../validation/users.validation.js';
+
+export const listAssignableUsersController: RequestHandler = async (_request, response, next) => {
+  try {
+    response.json({ users: await listAssignableUsers() });
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const listUsersController: RequestHandler = async (request, response, next) => {
   try {

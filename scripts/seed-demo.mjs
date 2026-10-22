@@ -48,6 +48,19 @@ const SENHA_DEMO = process.env.DEMO_PASSWORD ?? 'demo-ficticia-123456';
 // propria (e-mail exclusivo, senha conhecida) direto no banco, sem tocar em
 // nenhuma conta existente. Ver a funcao garantirAdminDeDemonstracao abaixo.
 
+/**
+ * SSL da conexao, derivado da propria URL.
+ *
+ * Postgres local quase nunca fala SSL: forcar a negociacao derruba o seed com
+ * "The server does not support SSL connections". So exigimos TLS quando a URL
+ * pede explicitamente (Neon e similares).
+ */
+function sslDaUrl(url) {
+  const modo = new URL(url).searchParams.get('sslmode');
+  if (!modo || modo === 'disable' || modo === 'allow') return null;
+  return { rejectUnauthorized: false };
+}
+
 async function api(path, { method = 'GET', token, body } = {}) {
   const headers = { 'content-type': 'application/json' };
   if (token) headers.authorization = `Bearer ${token}`;
@@ -82,8 +95,8 @@ async function garantirAdminDeDemonstracao() {
   const url = process.env.DATABASE_URL;
   exige(url, 'DATABASE_URL nao definida: nao da para garantir o administrador de demonstracao');
 
-  const ssl = /[?&]sslmode=disable/.test(url) ? false : { rejectUnauthorized: false };
-  const pool = new Pool({ connectionString: url, ssl, max: 2 });
+  const ssl = sslDaUrl(url);
+  const pool = new Pool({ connectionString: url, ...(ssl ? { ssl } : {}), max: 2 });
   const email = 'demo-admin@exemplo.invalid';
   const senha = 'demo-ficticia-123456';
 

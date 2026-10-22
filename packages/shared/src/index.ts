@@ -1,5 +1,5 @@
 export { userRoles } from './auth.js';
-export type { AuthUser, LoginResponse, User, UserRole } from './auth.js';
+export type { AuthUser, AssignableUser, LoginResponse, User, UserRole } from './auth.js';
 export {
   commentVisibilities,
   httpMethods,

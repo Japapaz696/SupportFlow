@@ -1,0 +1,379 @@
+{
+  "telas": [
+    {
+      "tela": "login-1440",
+      "a11y": {
+        "problemas": [],
+        "semNome": [],
+        "h1": "Acesse sua conta",
+        "lang": "pt-BR",
+        "main": true,
+        "navRotulado": false,
+        "titulos": [
+          "H1 Acesse sua conta"
+        ],
+        "botoesSemNome": []
+      },
+      "layout": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "overflowPx": 0,
+        "pequenos": [],
+        "vazando": []
+      },
+      "foco": {
+        "ordem": [
+          {
+            "tag": "input",
+            "id": "email",
+            "rotulo": "",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "input",
+            "id": "password",
+            "rotulo": "",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "Entrar",
+            "outline": true,
+            "boxShadow": false
+          }
+        ],
+        "semAnel": []
+      }
+    },
+    {
+      "tela": "dashboard-1440",
+      "a11y": {
+        "problemas": [],
+        "semNome": [],
+        "h1": "Dashboard",
+        "lang": "pt-BR",
+        "main": true,
+        "navRotulado": true,
+        "titulos": [
+          "H1 Dashboard",
+          "H2 SLA",
+          "H2 Por prioridade",
+          "H2 Por categoria",
+          "H2 Tickets que exigem atenção"
+        ],
+        "botoesSemNome": []
+      },
+      "layout": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "overflowPx": 0,
+        "pequenos": [],
+        "vazando": []
+      }
+    },
+    {
+      "tela": "lista-chamados-1440",
+      "a11y": {
+        "problemas": [],
+        "semNome": [],
+        "h1": "Chamados",
+        "lang": "pt-BR",
+        "main": true,
+        "navRotulado": true,
+        "titulos": [
+          "H1 Chamados"
+        ],
+        "botoesSemNome": []
+      },
+      "layout": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "overflowPx": 0,
+        "pequenos": [],
+        "vazando": []
+      },
+      "foco": {
+        "ordem": [
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "📊 Dashboard",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "📋 Chamados",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "⏱ Políticas SLA",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "📁 Categorias",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "🔔 Notificações",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "Sair",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "🔔\nNotificações",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "Novo chamado",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "input",
+            "id": "ticket-search",
+            "rotulo": "Código, título ou descrição",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "Buscar",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "select",
+            "id": "ticket-filter-status",
+            "rotulo": "Todos\nAberto\nEm atendimento\nAguard",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "select",
+            "id": "ticket-filter-priority",
+            "rotulo": "Todas\nCrítica\nAlta\nMédia\nBaixa",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "SF-000010",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "Impressora do deposito nao imprime",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "SF-000009",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "Impressora do deposito nao imprime",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "SF-000008",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "Impressora do deposito nao imprime",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "SF-000007",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "Impressora do deposito nao imprime",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "SF-000006",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "Erro de permissao ao baixar planil",
+            "outline": true,
+            "boxShadow": false
+          }
+        ],
+        "semAnel": []
+      }
+    },
+    {
+      "tela": "detalhe-chamado-1440",
+      "a11y": {
+        "problemas": [],
+        "semNome": [],
+        "h1": "Impressora do terceiro andar nao imprime",
+        "lang": "pt-BR",
+        "main": true,
+        "navRotulado": true,
+        "titulos": [
+          "H1 Impressora do terceiro andar nao imprime",
+          "H2 Diagnóstico Técnico",
+          "H2 Comentários",
+          "H2 Histórico"
+        ],
+        "botoesSemNome": []
+      },
+      "layout": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "overflowPx": 0,
+        "pequenos": [],
+        "vazando": []
+      }
+    },
+    {
+      "tela": "formulario-novo-1440",
+      "a11y": {
+        "problemas": [],
+        "semNome": [],
+        "h1": "Abrir chamado",
+        "lang": "pt-BR",
+        "main": true,
+        "navRotulado": true,
+        "titulos": [
+          "H1 Abrir chamado"
+        ],
+        "botoesSemNome": []
+      },
+      "layout": {
+        "scrollWidth": 1440,
+        "clientWidth": 1440,
+        "overflowPx": 0,
+        "pequenos": [],
+        "vazando": []
+      }
+    },
+    {
+      "tela": "dashboard-390",
+      "a11y": {
+        "problemas": [],
+        "semNome": [],
+        "h1": "Dashboard",
+        "lang": "pt-BR",
+        "main": true,
+        "navRotulado": true,
+        "titulos": [
+          "H1 Dashboard",
+          "H2 SLA",
+          "H2 Por prioridade",
+          "H2 Por categoria",
+          "H2 Tickets que exigem atenção"
+        ],
+        "botoesSemNome": []
+      },
+      "layout": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "overflowPx": 0,
+        "pequenos": [],
+        "vazando": []
+      }
+    },
+    {
+      "tela": "lista-chamados-390",
+      "a11y": {
+        "problemas": [],
+        "semNome": [],
+        "h1": "Chamados",
+        "lang": "pt-BR",
+        "main": true,
+        "navRotulado": true,
+        "titulos": [
+          "H1 Chamados"
+        ],
+        "botoesSemNome": []
+      },
+      "layout": {
+        "scrollWidth": 390,
+        "clientWidth": 390,
+        "overflowPx": 0,
+        "pequenos": [],
+        "vazando": []
+      }
+    },
+    {
+      "tela": "lista-chamados-320",
+      "a11y": {
+        "problemas": [],
+        "semNome": [],
+        "h1": "Chamados",
+        "lang": "pt-BR",
+        "main": true,
+        "navRotulado": true,
+        "titulos": [
+          "H1 Chamados"
+        ],
+        "botoesSemNome": []
+      },
+      "layout": {
+        "scrollWidth": 320,
+        "clientWidth": 320,
+        "overflowPx": 0,
+        "pequenos": [],
+        "vazando": []
+      }
+    }
+  ],
+  "console": [],
+  "excecoes": [],
+  "rede": []
+}

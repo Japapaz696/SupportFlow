@@ -1,0 +1,112 @@
+{
+  "data": "2026-10-21",
+  "total": 21,
+  "falhas": 0,
+  "verificacoes": [
+    {
+      "nome": "formulario de novo chamado abriu",
+      "ok": true,
+      "detalhe": ""
+    },
+    {
+      "nome": "categoria disponivel para o teste",
+      "ok": true,
+      "detalhe": "6122c1e0-bf1a-439e-bcde-dea93cc5cd92"
+    },
+    {
+      "nome": "toast de criacao apareceu",
+      "ok": true,
+      "detalhe": "[\"Chamado criado com sucesso.\\n×\"]"
+    },
+    {
+      "nome": "apenas UM toast (sem duplicidade)",
+      "ok": true,
+      "detalhe": "toasts=1"
+    },
+    {
+      "nome": "toast informa o chamado criado",
+      "ok": true,
+      "detalhe": "[\"Chamado criado com sucesso.\\n×\"]"
+    },
+    {
+      "nome": "chamado novo aparece na listagem",
+      "ok": true,
+      "detalhe": ""
+    },
+    {
+      "nome": "agente assumiu o chamado (toast + responsavel no detalhe)",
+      "ok": true,
+      "detalhe": "antes='Sem responsável' depois='Demo Ficticia Agente' toast=true (ok)"
+    },
+    {
+      "nome": "comentario publico gravado e visivel",
+      "ok": true,
+      "detalhe": ""
+    },
+    {
+      "nome": "nota interna gravada (agente ve a etiqueta)",
+      "ok": true,
+      "detalhe": ""
+    },
+    {
+      "nome": "exatamente 1 nota interna para o agente",
+      "ok": true,
+      "detalhe": "total=1"
+    },
+    {
+      "nome": "solicitante nao ve NENHUMA nota interna",
+      "ok": true,
+      "detalhe": "badges=0"
+    },
+    {
+      "nome": "solicitante ve o comentario publico",
+      "ok": true,
+      "detalhe": ""
+    },
+    {
+      "nome": "lista de responsaveis traz o agente ativo",
+      "ok": true,
+      "detalhe": "[\"Sem responsável\",\"Demo Ficticia Agente\",\"Demo Ficticia Agente Secundario\"]"
+    },
+    {
+      "nome": "responsavel reatribuido com confirmacao",
+      "ok": true,
+      "detalhe": ""
+    },
+    {
+      "nome": "prioridade alterada para Media com confirmacao",
+      "ok": true,
+      "detalhe": ""
+    },
+    {
+      "nome": "status alterado em duas etapas (open -> in_progress -> resolved)",
+      "ok": true,
+      "detalhe": "in_progress=true/true resolved=true/true"
+    },
+    {
+      "nome": "SLA de resolucao aparece no detalhe do chamado",
+      "ok": true,
+      "detalhe": "Prazo: 22/10/2026, 23:24:26 · Status: Cumprido"
+    },
+    {
+      "nome": "dashboard carregou metricas",
+      "ok": true,
+      "detalhe": "SupportFlow | 📊 Dashboard | 📋 Chamados | ⏱ Políticas SLA | 📁 Categorias | 🔔 Notificações | Demo Ficticia Gestora | Gerente | Sair | Dashboard | 🔔 | Notificações | ATENDIMENT"
+    },
+    {
+      "nome": "busca no servidor encontra o chamado pelo titulo",
+      "ok": true,
+      "detalhe": ""
+    },
+    {
+      "nome": "solicitante tem notificacoes nao lidas",
+      "ok": true,
+      "detalhe": "badge=11"
+    },
+    {
+      "nome": "badge de nao lidas cai ao marcar uma como lida",
+      "ok": true,
+      "detalhe": "antes=11 depois=10 (ok)"
+    }
+  ]
+}

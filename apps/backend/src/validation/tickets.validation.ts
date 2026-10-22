@@ -27,6 +27,7 @@ export type TicketFilters = Pagination & {
   priority?: TicketPriority;
   categoryId?: string;
   assigneeId?: string;
+  search?: string;
 };
 
 export type CommentPayload = {
@@ -75,6 +76,7 @@ export function parseTicketFilters(value: unknown): TicketFilters {
     'priority',
     'categoryId',
     'assigneeId',
+    'search',
     'page',
     'pageSize',
   ]);
@@ -103,6 +105,14 @@ export function parseTicketFilters(value: unknown): TicketFilters {
 
   if ('assigneeId' in query) {
     filters.assigneeId = validateUuid(String(query.assigneeId ?? ''), 'assigneeId');
+  }
+
+  if ('search' in query && query.search !== undefined && String(query.search) !== '') {
+    const search = String(query.search).trim();
+    if (search.length > 120) {
+      throw new HttpError(400, 'VALIDATION_ERROR', 'search must contain at most 120 characters');
+    }
+    filters.search = search;
   }
 
   return filters;

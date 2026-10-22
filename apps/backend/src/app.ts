@@ -1,5 +1,7 @@
+import cors from 'cors';
 import express from 'express';
 
+import { corsOptions, securityHeaders } from './middleware/security.middleware.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { notFoundHandler } from './middleware/not-found.js';
 import { authRouter } from './routes/auth.routes.js';
@@ -12,6 +14,23 @@ import { notificationsRouter } from './routes/notifications.routes.js';
 import { slaPoliciesRouter } from './routes/sla-policies.routes.js';
 
 export const app = express();
+
+// Atras de proxy (Render/Vercel) confiamos em 1 hop para que o IP real do
+// cliente seja usado no rate limiting. Em teste nao ha proxy.
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
+// Security headers
+app.use(securityHeaders);
+
+// CORS
+app.use(cors(corsOptions));
+
+// Rate limiting: o limiter e aplicado na rota de login (unico endpoint que
+// confere credenciais), dentro de auth.routes.ts. Em testes ele e desativado
+// para nao interferir nas demais suites; o comportamento real e provado em
+// security-middleware.test.ts, que instancia o limiter ativo.
 
 app.use(express.json());
 app.use(healthRouter);

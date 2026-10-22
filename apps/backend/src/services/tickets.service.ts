@@ -121,6 +121,7 @@ export async function listTickets(
     priority: filters.priority,
     categoryId: filters.categoryId,
     assigneeId: filters.assigneeId,
+    search: filters.search,
     limit: filters.pageSize,
     offset: (filters.page - 1) * filters.pageSize,
   });

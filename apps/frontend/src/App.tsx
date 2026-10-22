@@ -1,5 +1,7 @@
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import { AppShell } from './components/AppShell';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastProvider } from './components/Toast';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 
@@ -15,11 +17,15 @@ function AuthenticatedApp() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppShell>
-        <AuthenticatedApp />
-      </AppShell>
-    </AuthProvider>
+    <ErrorBoundary>
+      <ToastProvider>
+        <AuthProvider>
+          <AppShell>
+            <AuthenticatedApp />
+          </AppShell>
+        </AuthProvider>
+      </ToastProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -1,0 +1,8 @@
+SupportFlow V2 - evidencia de 403 (acesso negado por perfil)
+Data: 21/10/2026 | usuario: solicitante@exemplo.invalid (role=requester)
+
+alterar prioridade  : HTTP 403 {"error":{"code":"FORBIDDEN","message":"Only managers and admins can change priority"}}
+alterar status      : HTTP 403 {"error":{"code":"FORBIDDEN","message":"You do not have permission to update tickets"}}
+comentario interno  : HTTP 403 {"error":{"code":"FORBIDDEN","message":"Requesters cannot create internal comments"}}
+
+403 = recusa por perfil (solicitante nao altera prioridade/status nem publica nota interna).
