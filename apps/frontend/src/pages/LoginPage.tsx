@@ -64,7 +64,7 @@ export function LoginPage() {
   }
 
   return (
-    <section className="auth-card" aria-labelledby="login-title">
+    <main className="auth-card" aria-labelledby="login-title">
       <p className="eyebrow">SupportFlow</p>
       <h1 id="login-title">Acesse sua conta</h1>
       <p className="supporting-text">Entre com o e-mail e a senha cadastrados.</p>
@@ -139,6 +139,6 @@ export function LoginPage() {
           {isSubmitting ? 'Entrando…' : 'Entrar'}
         </button>
       </form>
-    </section>
+    </main>
   );
 }

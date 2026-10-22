@@ -28,6 +28,22 @@ export function HomePage() {
       ? 'tickets'
       : view;
 
+  // Rotulo da secao atual. Fica na barra utilitaria (nao e um titulo): cada
+  // tela ja tem o proprio <h1>, e dois <h1> com o mesmo texto confunem o
+  // leitor de tela e duplicam o titulo gigante na tela.
+  const sectionLabel =
+    activeView === 'dashboard'
+      ? 'Dashboard'
+      : activeView === 'tickets'
+        ? 'Chamados'
+        : activeView === 'notifications'
+          ? 'Notificações'
+          : activeView === 'sla-policies'
+            ? 'Políticas SLA'
+            : activeView === 'categories'
+              ? 'Categorias'
+              : 'SupportFlow';
+
   function openTickets(id: string | null = null) {
     setSelectedTicketId(id);
     setView('tickets');
@@ -121,23 +137,8 @@ export function HomePage() {
         </div>
       </aside>
       <main className="main-content">
-        <div className="page-header">
-          <div>
-            <p className="eyebrow">SupportFlow</p>
-            <h1 id="page-title">
-              {activeView === 'dashboard'
-                ? 'Dashboard'
-                : activeView === 'tickets'
-                  ? 'Chamados'
-                  : activeView === 'notifications'
-                    ? 'Notificações'
-                    : activeView === 'sla-policies'
-                      ? 'Políticas SLA'
-                      : activeView === 'categories'
-                        ? 'Categorias'
-                        : 'SupportFlow'}
-            </h1>
-          </div>
+        <div className="topbar">
+          <p className="topbar-label">{sectionLabel}</p>
           <NotificationBell
             onOpen={() => navigate('notifications')}
             unread={unreadNotifications}
