@@ -66,7 +66,12 @@ export function createAuthRateLimiter(overrides: Partial<RateLimitOptions> = {})
     max: 10,
     standardHeaders: true,
     legacyHeaders: false,
-    message: { error: { message: 'Muitas tentativas. Tente novamente mais tarde.' } },
+    message: {
+      error: {
+        code: 'RATE_LIMITED',
+        message: 'Muitas tentativas. Tente novamente mais tarde.',
+      },
+    },
     ...overrides,
   });
 }
