@@ -184,6 +184,62 @@
           {
             "tag": "button",
             "id": null,
+            "rotulo": "SF-000010",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "Impressora do deposito nao imprime",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "SF-000009",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "Impressora do deposito nao imprime",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "SF-000008",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "Impressora do deposito nao imprime",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "SF-000007",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
+            "rotulo": "Impressora do deposito nao imprime",
+            "outline": true,
+            "boxShadow": false
+          },
+          {
+            "tag": "button",
+            "id": null,
             "rotulo": "SF-000006",
             "outline": true,
             "boxShadow": false
@@ -192,62 +248,6 @@
             "tag": "button",
             "id": null,
             "rotulo": "Erro de permissao ao baixar planil",
-            "outline": true,
-            "boxShadow": false
-          },
-          {
-            "tag": "button",
-            "id": null,
-            "rotulo": "SF-000005",
-            "outline": true,
-            "boxShadow": false
-          },
-          {
-            "tag": "button",
-            "id": null,
-            "rotulo": "Acesso ao relatorio mensal bloquea",
-            "outline": true,
-            "boxShadow": false
-          },
-          {
-            "tag": "button",
-            "id": null,
-            "rotulo": "SF-000004",
-            "outline": true,
-            "boxShadow": false
-          },
-          {
-            "tag": "button",
-            "id": null,
-            "rotulo": "Impressora do terceiro andar nao i",
-            "outline": true,
-            "boxShadow": false
-          },
-          {
-            "tag": "button",
-            "id": null,
-            "rotulo": "SF-000002",
-            "outline": true,
-            "boxShadow": false
-          },
-          {
-            "tag": "button",
-            "id": null,
-            "rotulo": "Mensagem de erro ao filtrar",
-            "outline": true,
-            "boxShadow": false
-          },
-          {
-            "tag": "button",
-            "id": null,
-            "rotulo": "SF-000003",
-            "outline": true,
-            "boxShadow": false
-          },
-          {
-            "tag": "button",
-            "id": null,
-            "rotulo": "Duvida sobre prazos de atendimento",
             "outline": true,
             "boxShadow": false
           }
