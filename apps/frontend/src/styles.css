@@ -446,6 +446,7 @@ input[type='number'] {
   grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
   gap: 0.75rem;
   margin: 1.5rem 0;
+  min-width: 0;
 }
 
 .metric-card,
@@ -455,6 +456,7 @@ input[type='number'] {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
+  overflow-wrap: anywhere;
 }
 
 .metric-card {
@@ -477,6 +479,7 @@ input[type='number'] {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   margin-bottom: 1rem;
+  min-width: 0;
 }
 
 .dashboard-panel {
@@ -518,6 +521,7 @@ input[type='number'] {
   grid-template-columns: minmax(4.5rem, 7rem) 1fr 2.5rem;
   gap: 0.5rem;
   align-items: center;
+  min-width: 0;
 }
 
 .bar-row > span {
@@ -530,6 +534,7 @@ input[type='number'] {
   overflow: hidden;
   background: #edf0f6;
   border-radius: 999px;
+  min-width: 0;
 }
 
 .bar-fill {
@@ -673,6 +678,13 @@ input[type='number'] {
 
   .page-header {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .page-header .header-actions {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .filters,
@@ -699,6 +711,41 @@ input[type='number'] {
   .header-actions button,
   .notification-actions button {
     flex: 1 1 auto;
+    min-height: 2.75rem;
+  }
+
+  .bar-row {
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    row-gap: 0.35rem;
+  }
+
+  .bar-row > span {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .bar-row > strong {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    min-width: 2rem;
+    text-align: right;
+  }
+
+  .bar-row .bar-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+  }
+
+  .ticket-card {
+    padding: 0.85rem;
+  }
+
+  .ticket-card-meta {
+    flex-wrap: wrap;
+    gap: 0.35rem;
   }
 }
 
@@ -714,17 +761,46 @@ input[type='number'] {
   }
 
   .diagnostic-grid,
-  .user-details,
-  .metric-grid {
+  .user-details {
     grid-template-columns: 1fr;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .metric-card {
+    padding: 0.85rem;
+  }
+
+  .metric-card strong {
+    font-size: 1.25rem;
   }
 
   .bar-row {
     grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    row-gap: 0.35rem;
+  }
+
+  .bar-row > span {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .bar-row > strong {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    min-width: 2rem;
+    text-align: right;
   }
 
   .bar-row .bar-track {
     grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
   }
 
   h1 {
